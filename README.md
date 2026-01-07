@@ -1,2 +1,2 @@
 # STAT240_SP26
-Public-facing repository for all STAT 240 materials in Spring 2026
+This is the central repository where students of STAT 240 in Spring 2026 can access course files, including discussion and homework assignments. This repository will be updated continually throughout the semester with new assignments, solutions, and other files.
