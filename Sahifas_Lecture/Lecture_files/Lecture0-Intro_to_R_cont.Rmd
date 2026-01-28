@@ -76,7 +76,7 @@ Note: Adding `!` infornt of anything in R changes it to the negation of the foll
 5 == 3
 ```
 
-We also have the `and` and `or` operators which uses the symbols `&` and `!`, respectively. These operators are used in the same context as `and` and `or` truth tables.
+We also have the `and` and `or` operators which uses the symbols `&` and `|`, respectively. These operators are used in the same context as `and` and `or` truth tables.
 
 ![And and Or truth tables](https://www.mathsisfun.com/sets/images/truth-table.svg)
 
