@@ -52,13 +52,13 @@ logicalValues[2]
 ```
 
 ```{r}
-# Using tidyverse's tibble to make a dataset of instructors
+# Using tidyverse's tibble to make a dataset of instructors and the number of STAT 240 sections they taught in Spring 24
 library(tidyverse)
 
 tibble(
   name = c("Cameron", "Bret", "Miranda", "Sahifa", "Bi"),
-  favoriteNumber = c(12, 240, 8, NA, 3),
-  singleDigit = favoriteNumber < 10
+  sec_count = c(1, 1, 3, 3, NA),
+  more_than_1_sec = sec_count > 1
 )
 ```
 
