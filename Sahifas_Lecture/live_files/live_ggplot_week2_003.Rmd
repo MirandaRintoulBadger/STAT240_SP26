@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, error = TRUE)
 library(tidyverse)
 ```
+# Monday
 
 ```{r}
 mendota = read_csv("../data/lake-mendota-winters-2025.csv")
@@ -42,6 +43,73 @@ ggplot(data = mpg, mapping = aes(cty, hwy)) +
   geom_line()
 ```
 
+# Wednesday
+
+```{r}
+# adding color to the points depoending on the vehicles cylinder
+
+ggplot(mpg, mapping = aes(cty, hwy, col = as.factor(cyl))) + 
+  geom_point() +
+  geom_line()
+```
+
+# variable vs constant aesthetic
+
+```{r}
+ggplot(data = mpg, mapping = aes(cty, hwy)) + 
+  geom_point(col = "red") +
+  geom_line()
+
+ggplot(mpg, mapping = aes(cty, hwy, col = as.factor(cyl))) + 
+  geom_point() +
+  geom_line()
+```
+
+# global vs local aesthetic
+
+```{r}
+ggplot(data = mpg, mapping = aes(cty, hwy)) + 
+  geom_point(col = "red") + # local aesthetic because the color is applied to only the points and not the lines
+  geom_line()
+
+ggplot(mpg, mapping = aes(cty, hwy, col = as.factor(cyl))) +# global aethetic because the color gets applied to both the points and lines
+  geom_point() +
+  geom_line()
+```
+
+```{r}
+ggplot() + 
+  geom_point(data = mpg, mapping = aes(cty, hwy), col = "red") +
+  geom_line()
+```
+
+```{r}
+ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point(color = "purple", size = 4)
+```
+
+# Two variable:
+
+- geom_point()
+- geom_line()
+- geom_smooth(): thsi function smakes trendlines (line of best fit)
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point() +
+  geom_smooth()
+
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point() +
+  geom_smooth(se = F, method = "lm")
+```
+
+- geom_col():
+
+```{r}
+ggplot(count(mpg, class), aes(class, n)) + 
+  geom_col(color = "purple", fill = "yellow") # the argument fill is used for shaped plots, where the shapes have an area that can be colored 
+```
 
 
 
