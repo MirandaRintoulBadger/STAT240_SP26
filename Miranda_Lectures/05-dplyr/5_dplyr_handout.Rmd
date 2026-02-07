@@ -1,0 +1,619 @@
+---
+title: "Section 5: dplyr Fundamentals"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+# Uncomment the line below to install the package (only need to do this once)
+#install.packages("magrittr") 
+
+library(magrittr)
+```
+
+
+## The pipe
+
+The pipe passes the object on the left to the function on the right.
+(Ctrl + Shift + M) or (Command + Shift + M)
+
+```{r}
+subtract(5, 2) # 5 - 2 = 3
+
+5 %>% subtract(2) # This is 5 - 2 = 3, not 2 - 5 = -3
+```
+
+It makes things much more readable when we have multiple nested functions.
+
+```{r}
+divide_by(raise_to_power(multiply_by(subtract(5, 2), 4), 2), 12)
+
+5 %>% 
+  subtract(2) %>% 
+  multiply_by(4) %>% 
+  raise_to_power(2) %>% 
+  divide_by(12)
+```
+
+Try recreating the following code with the pipe:
+
+```{r}
+sqrt(add(divide_by(30, 10), 6))
+```
+
+
+## dplyr basics
+
+We'll continue working with the Palmer penguins data as an example.
+
+```{r}
+penguins <- read_csv("../../data/penguins.csv")
+```
+
+
+### Column editors
+
+`select()` reduces the df to the columns we specify.
+
+```{r}
+# select just species, sex, flipper length, and body mass
+penguins %>%
+  select(species, sex, flipper_length_mm, body_mass_g)
+
+# Can also "de-select"
+# e.g. select everything except island and
+# columns body mass through year
+
+penguins %>%
+  select(-island, -(body_mass_g:year))
+```
+
+
+`relocate()` moves columns without adding or removing any.  By default, it takes columns and moves them to the *left*.
+
+```{r}
+penguins %>% 
+  relocate(year, sex)
+```
+
+Or, we can move columns to specific places.
+
+```{r}
+penguins %>% 
+  relocate(island, .after = year)
+```
+
+`rename()` changes the column names.
+Write `new_name = old_name`.
+
+```{r}
+penguins %>%
+  rename(species_name = species, island_name = island)
+```
+
+Note that none of these actions are changing the `penguins` object.  If we want to save the results, we can use `<-`, either to define a new object or overwrite the current object.
+
+```{r}
+# Let's make a smaller penguin dataset that's easier to see
+penguins_small <- penguins %>%
+    select(species, sex, bill_length_mm, bill_depth_mm)
+
+penguins_small
+```
+
+`mutate()` creates a new column.  For example, make a new column whose value is constant for all rows.
+
+```{r}
+penguins_small %>%
+  mutate(study = "Palmer")
+```
+
+Or, we can change the value of an existing column.
+
+```{r}
+penguins_small %>%
+  mutate(sex = substr(toupper(sex), 1, 1))
+```
+
+More commonly, create a new column based on the values of other columns.  Let's estimate the volume of a penguin bill as a cylinder.
+
+```{r}
+penguins_small %>%
+  mutate(bill_cross_section_mm2 = pi * (bill_depth_mm / 2)^2,
+         
+         bill_vol_mm3 = bill_cross_section_mm2 * bill_length_mm
+)
+```
+
+
+### Row editors
+
+`arrange()` lets us order the rows while keeping the columns unchanged.  It sorts rows from smallest to largest.
+
+```{r}
+penguins %>% 
+  arrange(flipper_length_mm)
+
+penguins %>%
+  arrange(island)
+```
+
+If we want to go from largest to smallest, use `desc`.
+
+```{r}
+penguins %>%
+  arrange(desc(island))
+
+# Advanced note that you don't have to know: R considers
+# uppercase as "greater" than lowercase IF IT IS THE SAME LETTER.
+# Otherwise, it ignores case.
+# So, "B" > "b", but "A" < "b".
+```
+
+You can also provide further variables to break ties in the first one, if desired. If not, the order in the original dataframe will break the tie.
+
+
+The `filter()` command chooses specific rows based on a condition.  In R, conditions evaluate to `TRUE` or `FALSE`.
+
+```{r}
+penguins
+
+penguins$species 
+
+# For each row in the data, check whether its species is Chinstrap
+penguins$species == "Chinstrap" 
+```
+
+Let's keep only the rows corresponding to Chinstrap penguins.
+
+```{r}
+penguins %>% 
+  filter(species == "Chinstrap")
+```
+
+We can set more complicated conditions with `&` (AND) and `|` (OR).
+
+```{r}
+# Only look at rows where body mass is between 3000 and 4000
+penguins %>% 
+  filter(body_mass_g >= 3000 & body_mass_g <= 4000)
+
+# Look at rows where body mass is less than 3000 OR above 4000
+penguins %>% 
+  filter(body_mass_g < 3000 | body_mass_g > 4000)
+```
+
+`drop_na()` removes any rows with missing values.  In the `starwars` dataset, we have `NA` for the hair color of droids.
+
+```{r}
+# C-3PO and R2-D2 and R5-D4's hair_color are NA.
+starwars
+
+# Normally, there are 87 characters
+nrow(starwars)
+```
+
+Now let's get rid of those rows.
+
+```{r}
+# Goodbye to those rows! Now we skip right from Luke to Darth Vader.
+starwars %>% 
+  drop_na(hair_color)
+
+# After removing rows with NA, 82 rows are left
+starwars %>% 
+  drop_na(hair_color) %>% 
+  nrow()
+```
+
+By default, `drop.na` looks for missing values in ALL columns.
+
+```{r}
+example <- tibble(
+  col1 = c(NA, 2, 3, 4),
+  col2 = c(1, NA, 3, 4),
+  col3 = c(1, 2, NA, 4),
+  col4 = c(1, 2, 3, 4)
+)
+
+example
+
+example %>% drop_na()
+```
+
+If we only want to drop NA values from a single column, specify the column name or use `filter`.
+
+```{r}
+example %>% drop_na(col1)
+
+example %>% 
+  filter(!is.na(col1))
+
+starwars %>% 
+  filter(!is.na(hair_color))
+```
+
+
+### Try it out
+
+Pretend your boss is looking at your computer at the penguins dataframe with you and making the following requests. Write code to respond to your boss’s requests.
+
+"Show me just the penguins measured in 2009."
+
+```{r}
+
+```
+
+
+"Can you put what island it's from at the beginning?"
+
+```{r}
+
+```
+
+
+"I only care about the bill and flipper measurements, can you get rid of everything else?"
+
+```{r}
+
+```
+
+
+"Can you order the data based on the penguin's sex?"
+
+```{r}
+
+```
+
+
+"Can you convert the body mass to kilograms?"
+
+```{r}
+
+```
+
+
+### summarize
+
+`summarize()` reduces columns to a single number with a "reducing function".
+
+Let's think about how R does operations with vectors.  Some operations return the same number of elements as the original vector.
+
+```{r}
+prime_numbers <- c(2, 3, 5, 7, 11)
+fibonacci_numbers <- c(0, 1, 1, 2, 3)
+
+prime_numbers + fibonacci_numbers
+
+prime_numbers^2
+```
+
+Other operations reduce a vector to a single number.
+
+```{r}
+sum(prime_numbers)
+
+max(fibonacci_numbers)
+
+mean(prime_numbers)
+```
+
+When using `summarize()`, we apply a reducing function to a column (or columns) in our data set.
+
+```{r}
+penguins %>%
+  summarize(avg_mass = mean(body_mass_g),
+            min_mass = min(body_mass_g),
+            max_mass = max(body_mass_g),
+            n = n())
+```
+
+`summarize()` becomes even more powerful when combined with the `group_by()` command.
+
+
+## Combining commands
+
+### grouop_by
+
+`group_by()` is a powerful command that changes the *grouping* structure of a df.  On its own, it does not change any rows or columns:
+
+```{r}
+penguins %>% 
+  group_by(species)
+```
+
+What if we want to find the average, min, and max body mass of the different species?  So far, we have a naive approach:
+
+```{r}
+penguins %>%
+  filter(species == "Adelie") %>%
+  summarize(avg_mass = mean(body_mass_g),
+            min_mass = min(body_mass_g),
+            max_mass = max(body_mass_g))
+
+penguins %>%
+  filter(species == "Chinstrap") %>%
+  summarize(avg_mass = mean(body_mass_g),
+            min_mass = min(body_mass_g),
+            max_mass = max(body_mass_g))
+
+# and so on for all of the species...
+```
+
+`group_by()` is a much more convenient way to perform the same operation multiple times.
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  summarize(avg_mass = mean(body_mass_g),
+            min_mass = min(body_mass_g),
+            max_mass = max(body_mass_g))
+```
+
+We can even group by multiple variables:
+
+```{r}
+penguins %>%
+  group_by(species, sex) %>%
+  summarize(avg_mass = mean(body_mass_g),
+            min_mass = min(body_mass_g),
+            max_mass = max(body_mass_g))
+```
+
+### Helpful summary functions
+
+Here are some other summary commands we can use. Use `slice_min()` to get some of the lowest values, and `slice_max()` to get some of the highest values.
+
+```{r}
+penguins %>% 
+  slice_min(bill_length_mm, n = 3)
+
+penguins %>% 
+  slice_max(bill_length_mm, n = 3)
+
+penguins %>%
+  group_by(species) %>%
+  slice_max(bill_length_mm, n = 3)
+```
+
+`count()` a quicker way to count rows, similar to `n()`.
+
+```{r}
+penguins %>%
+  count(species)
+
+penguins %>%
+  group_by(species) %>%
+  summarize(n = n())
+```
+
+
+### Applications of group_by
+
+We use `mutate` to create a new column, usually based on the values of other columns.
+
+```{r}
+penguins %>% 
+  mutate(new_column = 5) %>% 
+  relocate(new_column)
+
+penguins %>% 
+  mutate(avg_mass = mean(body_mass_g)) %>% 
+  relocate(avg_mass)
+```
+
+When we use `group_by()`, each row gets assigned a number based on group.  For example, we find average body mass separately by species.
+
+```{r}
+penguins %>% 
+  group_by(species) %>% 
+  mutate(avg_mass = mean(body_mass_g)) %>% 
+  relocate(avg_mass)
+```
+
+What is the standard score for each penguin's body mass?
+
+```{r}
+penguins %>% 
+  group_by(species) %>% 
+  mutate(avg_mass = mean(body_mass_g),
+         sd_mass = sd(body_mass_g),
+         
+         std_mass = (body_mass_g - avg_mass) / sd_mass) %>% 
+  
+  relocate(std_mass)
+```
+
+
+Finally, use `ungroup()` to remove the grouping property.
+
+```{r}
+largest <- penguins %>%
+  group_by(species) %>%
+  slice_max(body_mass_g, n = 5)
+
+largest
+
+largest %>%
+#  ungroup() %>%
+  summarize(avg_mass = mean(body_mass_g))
+```
+
+
+### Will it group?
+
+Run each of the following chunks.  Then predict what will happen if you add in the `group_by` instruction.  Uncomment that line out then run the chunk again.  Was your prediction correct?
+
+```{r}
+penguins %>% 
+  #group_by(species) %>% 
+  filter(bill_depth_mm > 16)
+```
+
+
+```{r}
+penguins %>% 
+  #group_by(species) %>% 
+  mutate(num_observed = n()) %>% 
+  relocate(num_observed)
+```
+
+
+```{r}
+penguins %>%
+  #group_by(species) %>% 
+  summarize(median_mass = median(body_mass_g)) %>% 
+  ungroup()
+```
+
+
+```{r}
+penguins %>% 
+  #group_by(species) %>% 
+  slice_min(flipper_length_mm, n = 2)
+```
+
+
+### case_when
+
+`case_when` lets us define column values based on a certain condition.
+
+```{r}
+# Every time we run this code, it will give a different order of rows
+
+students <- tibble(
+  name = c("A", "B", "C", "D", "E", "F"),
+  age = 17:22
+) %>% 
+  slice_sample(n = 6)
+
+students
+```
+
+Are the students legal adults yet?
+
+```{r}
+case_when(students$age >= 18 ~ "adult",
+          students$age < 18 ~ "child")
+
+students %>%
+  mutate(age_group = case_when(
+    students$age >= 18 ~ "adult",
+    students$age < 18 ~ "child"))
+```
+
+Maybe we want a more detailed column, `legal_status`.  This is what I want it to be:
+
+- "Cannot vote nor drink" if age is less than 18.
+- "Can vote, can't drink" if age is between 18 and 20.
+- "Can vote and drink" if age is greater than 20.
+
+```{r}
+students %>% 
+  mutate(legalStatus = case_when(
+  age >= 21 ~ "Can vote and drink",
+  age >= 18 & age <= 20 ~ "Can vote, can't drink",
+  age <= 17 ~ "Cannot vote nor drink"
+  ))
+```
+
+
+Let's look at a more complex example with the Star Wars data.  We can set `.default` to specify a default value if none of the conditions are met.
+
+```{r}
+starwars %>%
+  select(name:mass, gender, species) %>%
+  mutate(
+    type = case_when(
+      height >= 200 | mass >= 200 ~ "large",
+      species == "Droid" ~ "robot",
+      .default = "other"
+    )
+  ) %>% 
+  print(n = 22) # Why is IG-88 at the bottom "large" and not "robot"? Because the conditions evaluate in order!
+```
+
+
+## Lecture questions
+
+Let's spend some time in lecture working through some more complicated `dplyr` questions.  I encourage you to work together and talk with your neighbors!
+
+First, read in the weather data and take a few minutes to investigate the dataset.
+
+```{r}
+official <- read_csv("../../data/madison-weather-1869-2023.csv") %>% 
+  mutate(year = year(date),
+         month = month(date, label = TRUE),
+         day = day(date))
+```
+
+**Average Annual Temperature**
+
+Summarize the data to obtain the average temperature (`tavg`) per year. Then, make an effective plot of this data to show patterns over time and variation around the main pattern.  
+
+(Hints: 
+What do we do with the rows where `tavg` is missing? 
+Our current dataset is one row per date; we need to summarize that to one row per year.)
+
+```{r}
+
+```
+
+
+**Daily Temperature Records**
+
+For each of the 366 unique dates of the year, find the historical date which had the highest maximum temperature on that day of the year (e.g. What year was the hottest May 16?). There may be ties, which will lead to slightly more than 366 rows.
+
+(Hints:
+We will have to evaluate which row in `official` has the highest `tmax` within each combination of `month` and `day`.  We can do that with `group_by` leading into `slice_max`.
+)
+
+```{r}
+
+```
+
+
+**30-year Period**
+
+Meteorologists often determine weather norms by averaging over a 30-year period. Create a new variable which indicates what 30-year period a given day is part of; starting with 1871-1900, then 1901-1930, up to 1991-2020. You can exclude years before 1871 and after 2020.
+
+```{r}
+
+```
+
+
+**Temperature by Period**
+
+Then, with that 30-year-period variable you just created, calculate within each of the twelve months within each period (e.g. 1 row for all Januarys in 1871-1900, 1 row for all Februarys in 1871-1900… for each month, for each period) the average, maximum, and minimum of `tavg`.
+
+(Take a moment to make sure you understand what the question is asking for. We have 5 periods and there are twelve unique months in each period (e.g. January 1871 is lumped together with every other January from 1871 - 1900) so we will get 60 rows. We’ll also need to only keep those rows between 1871 and 2020.)
+
+```{r}
+
+```
+
+
+**Days with Precipitation**
+
+Make a summary table which shows the proportion of days which had any precipitation in each 30-year period + month combination.
+
+```{r}
+
+```
+
+
+Create a column graph of the percentage of days with precipitation in each 30-year period. Add the `facet_wrap` code to your graph to make a separate panel based on month.
+
+```{r}
+
+
+
+# Add this layer to your graph with '+' when you're ready
+#facet_wrap(vars(month))
+```
+
