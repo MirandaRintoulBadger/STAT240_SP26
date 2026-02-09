@@ -194,9 +194,37 @@ ggplot(mpg, aes(cty)) +
 ggplot(mpg, aes(cty)) +
   geom_boxplot()
 ```
+# Using fill as a variable aesthetic
 
+```{r}
+ggplot(mpg, aes(displ)) +
+  geom_boxplot()
 
+ggplot(mpg, aes(displ, fill = as.factor(cyl))) +
+  geom_boxplot()
+```
 
+```{r}
+ggplot(mpg, aes(cty)) +
+  geom_density() +
+  geom_vline(xintercept = mean(mpg$cty), col = "red")
+
+ggplot(mpg, aes(cty)) +
+  geom_density() +
+  geom_vline(xintercept = mean(mpg$cty), col = "red") + 
+  scale_x_continuous(breaks = c(10, mean(mpg$cty), 20, 30), 
+                     labels = c(10, "mean", 20, 30))
+```
+
+```{r}
+ggplot(mpg, aes(cty, hwy, col = as.factor(cyl))) + # global aesthetic
+  geom_point() +
+  geom_line() +
+  labs(title = "Mileages of cars depending on the cylinder",
+       x = "City mileage",
+       y = "Highway mileage",
+       col = "Cylinder")
+```
 
 
 
