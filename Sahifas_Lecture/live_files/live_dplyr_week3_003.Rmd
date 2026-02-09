@@ -1,0 +1,53 @@
+---
+title: "live_dplyr_week3"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+library(tidyverse)
+install.packages("magrittr")
+library(magrittr)
+```
+
+
+```{r}
+# nesting
+
+log(sqrt(3*5^2+4))
+
+(3*5^2+4) %>% sqrt() %>% log()
+```
+
+- pipe operator
+
+MAC: cmd+opt+m
+windows: ctrl + shift + m
+
+%>%
+
+```{r}
+(3*5^2+4)
+
+add(multiply_by(raise_to_power(5, 2), 3), 4)
+
+5 %>% raise_to_power(2) %>% multiply_by(3) %>% add(4)
+```
+
+```{r}
+grocery_prices = read_csv("../data/grocery-prices.csv")
+grocery_list = read_csv("../data/grocery-list.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
