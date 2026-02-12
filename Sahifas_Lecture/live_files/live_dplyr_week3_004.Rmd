@@ -12,6 +12,7 @@ library(tidyverse)
 # install.packages("magrittr")
 library(magrittr)
 ```
+# Monday
 
 # Pipe operator: %>% 
 
@@ -60,7 +61,115 @@ grocery_prices %>% arrange(-price)
 grocery_prices %>% filter(price > 1)
 ```
 
+# Wednesday
 
+# Column Operations: 
+
+- mutate(): this functions creates columns in your dataset, format is similar to tibble
+
+```{r}
+grocery_prices %>% mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) 
+```
+
+- select(): this function can create subsets of your dataset (not keep all the columns in the data)
+
+```{r}
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(item, type, total_price)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- price, - price_after_tax)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- c(price, price_after_tax))
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- c(price:price_after_tax))
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(price:price_after_tax)
+```
+
+- relocate(): this function relocates columns and preserves the order that you provide the columns in 
+
+```{r}
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(item, type, total_price)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(type, total_price, .after = item)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(type, total_price, .before = price)
+```
+
+- rename(): this function renames columns, format is similar tibble, new_col_name = old_col_name
+
+```{r}
+grocery_new = grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  rename(tax = price_after_tax)
+
+grocery_new
+```
+
+# Operations on rows
+
+- arrange():
+
+```{r}
+grocery_new %>% arrange(total_price)
+
+grocery_new %>% arrange(- total_price)
+
+grocery_new %>% arrange(desc(total_price))
+```
+
+- filter(): this function filtering rows that satisfy the condition/logical statement 
+
+```{r}
+grocery_new %>% filter(price>=1)
+
+# extract rows that have the type of item as vegetable
+grocery_new %>% filter(type == "vegetable")
+
+grocery_new %>% filter(!is.na(price)) # all the rows that don't have NA in price
+```
+
+```{r}
+starwars %>% filter(!is.na(hair_color) & !is.na(mass))
+```
+
+- slice_max() and slice_min(): these functions extract 'n' rows that have the min or max in the specified column
+
+```{r}
+grocery_new %>% slice_max(total_price, n = 3)
+```
+
+- Operations on groups:
+
+
+
+```{r}
+view(grocery_new)
+```
+
+
+- summarise(): this function will create a summary table
+
+```{r}
+grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_price = median(price), max_total = max(total_price)) # summary functions are function sthat create one output for the whole vector
+
+grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_price = median(price), max_total = max(total_price), sqrt = sqrt(price))
+```
 
 
 
