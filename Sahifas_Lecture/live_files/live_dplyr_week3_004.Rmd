@@ -171,5 +171,115 @@ grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_
 grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_price = median(price), max_total = max(total_price), sqrt = sqrt(price))
 ```
 
+# Friday
+
+- group_by(): this function creates groups
+
+```{r}
+grocery_new %>% group_by(type) %>% summarize(avg = mean(price), max = max(price))
+```
+
+```{r}
+grocery_new %>% group_by(type) %>% slice_max(price, n = 2)
+```
+
+```{r}
+grocery_new %>% group_by(type) %>% mutate(avg = mean(price)) %>% relocate(avg, .after = type)
+```
+
+```{r}
+grocery_new %>% group_by(price > 1, type) %>% summarise(avg = mean(price))
+
+grocery_new %>% group_by(type, price > 1) %>% summarise(avg = mean(price))
+```
+
+- n(): this functionm returns the number of rows in a set, usually it is used summarize()
+
+```{r}
+grocery_new %>% group_by(type) %>% summarise(sum = sum(total_price), n = n())
+
+grocery_new %>% group_by(price>1) %>% summarise(sum = sum(total_price), n = n())
+```
+- count(): this function also gives the numebr of distinct elements in the column
+
+```{r}
+grocery_new %>% count(type)
+```
+
+- case_when(): this function helps you create your own customized groups, usually used inside mutate
+
+```{r}
+grocery_new
+```
+
+We want to characterize our grocery_prices dataset into cheap, okay and expensive
+
+cheap price <1
+okay 1 < price < 2
+expensive price > 3
+
+```{r}
+grocery_new %>% select(item, price) %>% mutate(
+  expense = case_when(
+    price <= 1 ~ "Cheap",
+    price > 1 & price <= 2 ~ "Okay",
+    price > 2 ~ "Expensive"
+  )
+)
+```
+
+```{r}
+set.seed(10030)
+student_grade = tibble(grade = runif(100, 30, 100)) %>% slice_sample(n = 10)
+student_grade
+```
+
+A grade 90 - 100
+B grade 80 - 90
+C 70 - 80
+D 60 - 70
+F < 60
+
+Letter_grade should be the column where you put these letter grades
+
+
+```{r}
+student_grade %>% mutate(Letter_grade = case_when(
+  grade >= 90 ~ "A",
+  grade < 90 & grade >= 80 ~ "B",
+  .
+  .
+  .
+))
+```
+
+# Joining
+
+# Mutating joins
+
+
+grocery_list will be dataset A
+grocery_prices will be dataset B
+
+```{r}
+left_join(grocery_list, grocery_prices)
+```
+- right_join()
+
+```{r}
+right_join(grocery_list, grocery_prices)
+
+# using right_join how can you get only the rows of grocery_list or a result similar to left_join
+
+right_join(grocery_prices, grocery_list)
+```
+
+```{r}
+right_join(grocery_list, grocery_prices, by = join_by(item))
+```
+
+
+
+
 
 
