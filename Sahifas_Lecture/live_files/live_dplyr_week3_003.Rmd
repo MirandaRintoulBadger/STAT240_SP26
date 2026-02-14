@@ -146,6 +146,136 @@ grocery_new %>% slice_max(total_cost, n = 3)
 ```{r}
 grocery_new %>% summarise(avg_cost = mean(total_cost), sd_cost = sd(total_cost), median_price = median(price), count = n())
 ```
+# Friday
+
+- group_by(): this function creates groups and the next function in the line of code will only act on those groups.
+
+```{r}
+grocery_new %>% group_by(type)
+
+grocery_new %>% group_by(price > 1)
+```
+
+```{r}
+grocery_new %>% group_by(type) %>% summarise(avg_price = mean(price), most_expensive = max(price))
+```
+
+
+```{r}
+grocery_new %>% group_by(type) %>% slice_max(price, n = 2)
+```
+
+
+```{r}
+grocery_new %>% group_by(type) %>% mutate(avg = mean(price)) %>% relocate(avg, .after = type)
+```
+
+```{r}
+grocery_new %>% group_by(type, price>1) %>% summarise(avg = mean(price))
+
+grocery_new %>% group_by(price>1, type) %>% summarise(avg = mean(price))
+```
+
+- n(): this gives you the number of rows in that column or group. Usually used inside summarize
+
+```{r}
+grocery_new %>% group_by(price>1) %>% summarise(avg = mean(price), n = n())
+```
+
+- count(): does the same thing as n(), without summarize()
+
+```{r}
+grocery_new %>% group_by(type) %>% summarise(n = n())
+
+grocery_new %>% count(type)
+```
+
+- case_when(): thsi function is used to create customized groups. Usually used inside mutate
+
+```{r}
+student_age = tibble(
+  name = c("A", "B", "C", "D", "E", "F"),
+  age = 17:22
+) %>% 
+  slice_sample(n = 6)
+
+student_age
+```
+
+can't vote age < 18
+can drink age >= 21
+can vote but can't drink 18 <= age < 21
+
+```{r}
+student_age %>% mutate(legal_Status = case_when(
+  age < 18 ~ "Can't vote",
+  age >=18 & age < 21 ~ "Can't drink but can vote",
+  age >= 21 ~ "Can drink and vote"
+))
+```
+
+```{r}
+student_grade = tibble(
+  grade = runif(100,30, 100),
+) %>% 
+  slice_sample(n = 10)
+student_grade
+```
+ A grade 90 - 100
+ B grade 80 - 90
+ C grade 70 - 80
+ D grade 60 - 70
+ E grade 50 - 60
+ F grade < 50
+
+Letter_grade
+
+```{r}
+student_grade %>% mutate(Letter_grade = case_when(
+  grade >= 90 ~ "A",
+  grade >= 80 & grade < 90 ~ "B"
+  .
+  .
+  .
+  grade < 50 ~ "F"
+))
+```
+
+
+# Operations on pair of dataset
+
+## Joining
+
+## Mutating joins: 
+
+- `left_join()`
+
+grocery_list as dataset A
+grocery_prices as dataset B
+
+```{r}
+left_join(grocery_list, grocery_prices)
+
+left_join(grocery_list, grocery_prices, by = join_by(item))
+```
+
+- right_join():
+
+```{r}
+right_join(grocery_list, grocery_prices)
+
+# get the similar output as left_join with the rows of grocery list using right_join
+
+right_join(grocery_prices, grocery_list)
+```
+
+
+
+
+
+
+
+
 
 
 
