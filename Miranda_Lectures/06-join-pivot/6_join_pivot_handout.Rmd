@@ -1,0 +1,328 @@
+---
+title: 'Section 6: Joining and Pivoting'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+The dataset `grocery-list.csv` shows a customer's grocery list, while `supermarket.csv` shows the type and price of produce items at the supermarket.
+
+```{r}
+grocery_list <- read.csv("../../data/grocery-list.csv")
+
+supermarket <- read.csv("../../data/supermarket.csv")
+
+grocery_list
+supermarket
+```
+
+Let's combine this information into a single dataset.
+
+
+## Mutating joins
+
+### Left and right joins
+
+`left_join()` will merge the datasets and keep all values in the leftmost (x) dataframe.  We specify the column to join by.
+
+```{r}
+left_join(grocery_list, supermarket, join_by(item))
+
+# Pipe notation
+grocery_list %>% 
+  left_join(supermarket, join_by(item))
+
+# Now we can calculate the total cost of the customer's items
+grocery_list %>% 
+  left_join(supermarket, join_by(item)) %>%
+  mutate(cost = quantity * price)
+```
+
+`right_join()` does the opposite, by keeping all values in the rightmost (y) dataframe.  Its functionality is identical to `left_join()`.
+
+```{r}
+right_join(grocery_list, supermarket, join_by(item))
+
+# Same result (but different order of rows+columns):
+left_join(supermarket, grocery_list, join_by(item))
+```
+
+`left_join(x, y)` is identical to `right_join(y, x)`.
+
+
+### Different column names
+
+Let's look at `join_by()` in more detail. In the original discounts and drinks data, both have a column named `item`, which R can recognize.
+
+```{r}
+left_join(grocery_list, supermarket)
+```
+
+What if there are no columns in common?
+
+```{r}
+supermarket_temp <- supermarket %>% 
+  rename(name = item)
+
+supermarket_temp
+```
+
+If the dataframes have no rows in common, we get an error.
+
+```{r}
+left_join(grocery_list, supermarket_temp)
+```
+
+Specify the correct columns in `join_by`, in the same order as the datasets.
+
+```{r}
+left_join(grocery_list, supermarket_temp,
+          join_by(item == name))
+```
+
+Be careful with matching column names that we *don't* want to join by.
+
+```{r}
+grocerylist_ids <- cbind(id = 1:11, grocery_list)
+
+supermarket_ids <- cbind(id = 1:20, supermarket)
+
+grocerylist_ids
+supermarket_ids
+
+left_join(grocerylist_ids, supermarket_ids)
+```
+
+
+### Full join
+
+`full_join()` will keep all rows in both x and y.  Imagine doing a right or left join, and just appending any extra, non-matching rows at the bottom.
+
+```{r}
+full_join(grocery_list, supermarket, join_by(item))
+```
+
+This is different from simply stacking the rows.
+
+```{r}
+bind_rows(grocery_list, supermarket)
+```
+
+
+### Inner join
+
+`inner_join()` is the most "selective".  It only keeps rows that appear in both datasets and it does not induce any NA values.
+
+```{r}
+inner_join(grocery_list, supermarket, join_by(item))
+```
+
+
+### Predict the join result
+
+Guess the number of rows and columns that will result from the join.  Also, will any NA values appear?  Uncomment the join to see if you were correct.
+
+```{r}
+band_instruments
+
+band_members
+```
+
+```{r}
+#left_join(band_instruments, band_members, join_by(name))
+
+#full_join(band_instruments, band_members, join_by(name))
+
+# I did not specify a join_by(). Which column(s) will it match by default?
+
+#inner_join(band_instruments, band_members)
+
+```
+
+
+## Filtering joins
+
+Filtering joins decide to keep or remove rows, similar to `filter()`.  `semi_join()` returns matching rows.
+
+What items on the list can be found at the store?  The order matters here.
+
+```{r}
+grocery_list %>% 
+  semi_join(supermarket, join_by(item))
+
+supermarket %>% 
+  semi_join(grocery_list, join_by(item))
+```
+
+Notice the differences with `inner_join()`.  `inner_join()` results in a new column and `semi_join()` does not.
+
+```{r}
+inner_join(grocery_list, supermarket, join_by(item))
+```
+
+
+Use `anti_join()` to filter by non-matching rows.  What items on the list are not at the store?
+
+```{r}
+grocery_list %>% 
+  anti_join(supermarket, join_by(item))
+```
+
+What items at the store are not on my grocery list?
+
+```{r}
+supermarket %>% 
+  anti_join(grocery_list, join_by(item))
+```
+
+
+### Predict the join result
+
+Revisit the `band_members` and `band_instruments` data.  Predict the output of the following filtering joins.
+
+```{r}
+band_members
+
+band_instruments
+```
+
+```{r}
+#semi_join(band_members, band_instruments, join_by(name))
+
+# Switched order of band_instruments and band_members
+#semi_join(band_instruments, band_members, join_by(name))
+
+#anti_join(band_members, band_instruments, join_by(name))
+```
+
+
+## Pivoting
+
+The `players` dataset is in wide form.  There is one row per player, and columns for different statistics.
+
+```{r}
+players <- tibble(
+  player = c("Erling Haaland", "Kevin De Bruyne"),
+  goals = c(36, 7),
+  assists = c(8, 16),
+  games = c(35, 32)
+)
+
+players
+```
+
+This table shows the same data in long form.  Now, there is one row per player-statistic.  There are more rows and fewer columns.
+
+```{r}
+tibble(
+  player = c(rep("Erling Haaland", 3), rep("Kevin De Bruyne", 3)),
+  statistic = rep(c("goals", "assists", "games"), 2),
+  value = c(36, 8, 35, 7, 16, 32))
+```
+
+These two sets of data have the exact same information, organized in different ways.  Pivoting lets us transform the data between long and wide forms.
+
+
+### pivot_longer
+
+`pivot_longer()` is used to turn a wide dataframe into a long dataframe.  We provide the columns that we want to merge into a single column.
+
+```{r}
+players
+
+players %>% 
+  pivot_longer(c(goals, assists, games))
+
+# Or, specify that we only want to keep "player"
+players %>% 
+  pivot_longer(-player)
+
+# Can also specify a range of columns
+players %>% 
+  pivot_longer(goals:games)
+```
+
+The columns are automatically called "name" and "value".  We can give these columns our own names.
+
+```{r}
+players %>% 
+  pivot_longer(-player, names_to = "statistic", values_to = "amount")
+```
+
+
+### pivot_wider
+
+`pivot_wider()` is used to turn a long dataframe into a wide dataframe.  Let's re-do the pivot we did with the players data.
+
+```{r}
+players_long <- players %>% 
+  pivot_longer(c(goals, assists, games), names_to = "statistic")
+
+players_long
+```
+
+In our case, we want to split up the `name` column into three separate columns.  The new column names (goals, assists, games) come from the values of `name`.  We will populate these columns with the data in the `value` column.
+
+```{r}
+players_long %>% 
+  pivot_wider(names_from = statistic, values_from = value)
+```
+
+
+### Pivoting practice
+
+`table1` is a built-in dataframe of tuberculosis cases by country.
+
+```{r}
+table1
+```
+
+This dataset is in wide form.  Use `pivot_longer()` to convert the table to long-form.  
+
+- There should be one row per country-year-type combination
+- There should be four columns: `country`, `year`, `type`, `count`
+- `type` specifies whether we are looking at total population or TB cases
+- `count` gives the number of people
+
+```{r}
+table1 %>%
+  pivot_longer()
+```
+
+
+`nests` below is an example dataset of eagle nests with region, year (either 2007 or 2009), and number of nests.
+
+```{r}
+nests <- tibble(
+  region = c(rep("Pacific", 2), rep("Southwest", 2), rep("Rocky Mts", 2)),
+  year = rep(c(2007, 2009), 3),
+  num_nests = c(1039, 2587, 51, 176, 200, 338)
+)
+
+nests
+```
+
+This dataset is in long form. Use `pivot_wider()` to convert the table to wide form.
+
+- There should be one row per year
+- There should be four columns: `year`, `Pacific`, `Southwest`, `Rocky Mts`
+- The latter three columns give the number of nests in that region
+
+
+```{r}
+nests %>%
+  pivot_wider()
+```
+
+
+
