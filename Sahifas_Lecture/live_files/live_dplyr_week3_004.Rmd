@@ -1,0 +1,363 @@
+---
+title: "live_dplyr_week3"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+library(tidyverse)
+
+# install.packages("magrittr")
+library(magrittr)
+```
+
+# Pipe operator: %>% 
+
+MAC: cmd + shift + M
+Windows: ctrl + shift + M
+
+```{r}
+3*5^2 + 2
+
+# magrittr has functions for all basic mathematical operations
+
+add(multiply_by(raise_to_power(5, 2), 3), 2)
+
+5 %>% raise_to_power(2) %>% multiply_by(3) %>% add(2)
+```
+
+# datasets
+
+```{r}
+grocery_prices = read_csv("../data/grocery-prices.csv")
+
+grocery_list = read_csv("../data/grocery-list.csv")
+```
+
+# Row functions:
+
+```{r}
+grocery_prices
+```
+
+
+```{r}
+grocery_prices %>% arrange(price) # this arranges the price column in the increasing order
+
+grocery_prices %>% arrange(item)
+```
+```{r}
+grocery_prices %>% arrange(desc(price))
+grocery_prices %>% arrange(-price)
+```
+
+- filter():
+
+```{r}
+grocery_prices %>% filter(price > 1)
+```
+ 
+# Wednesday
+
+# Column Operations: 
+
+- mutate(): this functions creates columns in your dataset, format is similar to tibble
+
+```{r}
+grocery_prices %>% mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) 
+```
+
+- select(): this function can create subsets of your dataset (not keep all the columns in the data)
+
+```{r}
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(item, type, total_price)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- price, - price_after_tax)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- c(price, price_after_tax))
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(- c(price:price_after_tax))
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  select(price:price_after_tax)
+```
+
+- relocate(): this function relocates columns and preserves the order that you provide the columns in 
+
+```{r}
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(item, type, total_price)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(type, total_price, .after = item)
+
+grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  relocate(type, total_price, .before = price)
+```
+
+- rename(): this function renames columns, format is similar tibble, new_col_name = old_col_name
+
+```{r}
+grocery_new = grocery_prices %>% 
+  mutate(price_after_tax = price*0.02, total_price = price+price_after_tax) %>% 
+  rename(tax = price_after_tax)
+
+grocery_new
+```
+
+# Operations on rows
+
+- arrange():
+
+```{r}
+grocery_new %>% arrange(total_price)
+
+grocery_new %>% arrange(- total_price)
+
+grocery_new %>% arrange(desc(total_price))
+```
+
+- filter(): this function filtering rows that satisfy the condition/logical statement 
+
+```{r}
+grocery_new %>% filter(price>=1)
+
+# extract rows that have the type of item as vegetable
+grocery_new %>% filter(type == "vegetable")
+
+grocery_new %>% filter(!is.na(price)) # all the rows that don't have NA in price
+```
+
+```{r}
+starwars %>% filter(!is.na(hair_color) & !is.na(mass))
+```
+
+- slice_max() and slice_min(): these functions extract 'n' rows that have the min or max in the specified column
+
+```{r}
+grocery_new %>% slice_max(total_price, n = 3)
+```
+
+- Operations on groups:
+
+
+
+```{r}
+view(grocery_new)
+```
+
+
+- summarise(): this function will create a summary table
+
+```{r}
+grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_price = median(price), max_total = max(total_price)) # summary functions are function sthat create one output for the whole vector
+
+grocery_new %>% summarise(avg_price = mean(price), sd_price = sd(price), median_price = median(price), max_total = max(total_price), sqrt = sqrt(price))
+```
+
+```{r}
+IQR(grocery_new$price)
+```
+
+# Friday
+
+- group_by(): this function creates groups
+
+```{r}
+grocery_new %>% group_by(type) %>% summarize(avg = mean(price), max = max(price))
+```
+
+```{r}
+grocery_new %>% group_by(type) %>% slice_max(price, n = 2)
+```
+
+```{r}
+grocery_new %>% group_by(type) %>% mutate(avg = mean(price)) %>% relocate(avg, .after = type)
+```
+
+```{r}
+grocery_new %>% group_by(price > 1, type) %>% summarise(avg = mean(price))
+
+grocery_new %>% group_by(type, price > 1) %>% summarise(avg = mean(price))
+```
+
+- n(): this functionm returns the number of rows in a set, usually it is used summarize()
+
+```{r}
+grocery_new %>% group_by(type) %>% summarise(sum = sum(total_price), n = n())
+
+grocery_new %>% group_by(price>1) %>% summarise(sum = sum(total_price), n = n())
+```
+- count(): this function also gives the numebr of distinct elements in the column
+
+```{r}
+grocery_new %>% count(type)
+```
+
+- case_when(): this function helps you create your own customized groups, usually used inside mutate
+
+```{r}
+grocery_new
+```
+
+We want to characterize our grocery_prices dataset into cheap, okay and expensive
+
+cheap price <1
+okay 1 < price < 2
+expensive price > 3
+
+```{r}
+grocery_new %>% select(item, price) %>% mutate(
+  expense = case_when(
+    price <= 1 ~ "Cheap",
+    price > 1 & price <= 2 ~ "Okay",
+    price > 2 ~ "Expensive"
+  )
+)
+```
+
+```{r}
+set.seed(10030)
+student_grade = tibble(grade = runif(100, 30, 100)) %>% slice_sample(n = 10)
+student_grade
+```
+
+A grade 90 - 100
+B grade 80 - 90
+C 70 - 80
+D 60 - 70
+F < 60
+
+Letter_grade should be the column where you put these letter grades
+
+
+```{r}
+student_grade %>% mutate(Letter_grade = case_when(
+  grade >= 90 ~ "A",
+  grade < 90 & grade >= 80 ~ "B",
+  .
+  .
+  .
+))
+```
+
+# Joining
+
+# Mutating joins
+
+
+grocery_list will be dataset A
+grocery_prices will be dataset B
+
+```{r}
+left_join(grocery_list, grocery_prices) # 10 rows
+```
+
+- right_join()
+
+```{r}
+right_join(grocery_list, grocery_prices) # 20 rows
+
+# using right_join how can you get only the rows of grocery_list or a result similar to left_join
+
+right_join(grocery_prices, grocery_list)
+```
+
+```{r}
+right_join(grocery_list, grocery_prices, by = join_by(item))
+```
+
+
+item in grocery_prices
+grocery in grocery_list
+by = join_by("item" == "grocery")
+
+- inner_join(): this function will join the two datasets while only keeping the common rows but all the columns
+
+```{r}
+inner_join(grocery_list, grocery_prices)
+```
+- full_join(): This function joins the datasets by keeping all the rows and all the columns
+
+```{r}
+full_join(grocery_list, grocery_prices)
+```
+
+# filtering joins
+
+- semi_join(): this function filters out the rows of the first dataset that coincide with the second dataset
+
+
+```{r}
+semi_join(grocery_list, grocery_prices)
+```
+
+- anti_join(): this function filters out the rows from the first dataset that do not coincide with the second
+
+```{r}
+anti_join(grocery_list, grocery_prices)
+```
+
+```{r}
+drinks = tibble(
+  Row = 1:4,
+  Drink = c("Milk Tea", "Espresso", "Latte", "Espresso"),
+  Cafe = c("Happy Tea", "Daily Grind", "Daily Grind", "Bev's Beverages"),
+  Price = c(4, 2, 3, 2)
+)
+
+discounts = tibble(
+  Row = 1:3,
+  Coupon = c("25%", "50%", "5%"),
+  Location = c("Happy Tea", "Daily Grind", "The Roast")
+)
+```
+
+
+```{r}
+left_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+
+```{r}
+right_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+
+```{r}
+inner_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+
+
+```{r}
+full_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+```{r}
+semi_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+
+```{r}
+anti_join(drinks, discounts, by = join_by("Cafe"=="Location"))
+```
+
+```{r}
+band_members
+band_instruments
+
+table1
+table5
+```
+
+
