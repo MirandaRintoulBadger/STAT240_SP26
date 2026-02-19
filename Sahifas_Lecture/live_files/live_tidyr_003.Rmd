@@ -1,0 +1,113 @@
+---
+title: "live_tidyr_003"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# tidyr package
+
+## pivoting
+
+Long dataset: one column for the names, two (or more) columns: one for storing column names from the original dataset, second for storing values corresponding to column names
+
+Wide dataset: one column for the names and many more columns for storing variables
+
+```{r}
+players = tibble(
+  player = c("Erling Haaland", "Kevin De Bruyne"),
+  goals = c(36, 7),
+  assists = c(8, 16),
+  games = c(35, 32)
+)
+
+players
+```
+
+pivoting to long:
+
+- pivot_longer(): list of column that needs pivoting, optionally you can also provide the name for the column where the column names get moved to and also for the columns that the values get moved to
+
+
+```{r}
+players %>% pivot_longer(c(goals, assists, games), names_to = "Game_info", values_to = "Scores")
+
+players %>% pivot_longer(goals:games, names_to = "Game_info", values_to = "Scores")
+
+players %>% pivot_longer(-player, names_to = "Game_info", values_to = "Scores")
+
+players %>% pivot_longer(c(goals, games), names_to = "Game_info", values_to = "Scores")
+
+players %>% pivot_longer(-c(player,assists), names_to = "Game_info", values_to = "Scores")
+```
+
+```{r}
+(player_long = players %>% pivot_longer(-player))
+```
+
+pivoting to the wide dataset
+
+- pivot_wider(): here you have to provide where the column names and values are coming from
+
+
+```{r}
+player_long %>% pivot_wider()
+```
+
+```{r}
+players %>% pivot_longer(-player, names_to = "Game_info", values_to = "Scores") %>% pivot_wider(names_from = "Game_info", values_from = "Scores")
+```
+
+```{r}
+# go from table1 to table2
+table1 %>% pivot_longer(cases:population, names_to = "type", values_to = "count")
+```
+
+
+```{r}
+table1 %>% pivot_longer(year:population, names_to = "type", values_to = "count")
+```
+
+
+```{r}
+# go from table2 to table1
+
+table2 %>% pivot_wider(names_from = type, values_from = count)
+```
+
+```{r}
+table3 %>% inner_join(table1, join_by(country, year)) # this is a better option since both these columns have the exact same information
+
+table3 %>% inner_join(table1, join_by(country))
+```
+- drop_na(): removes NAs from either the whole dataset or specified column
+
+```{r}
+(players = tibble(
+  player = c("Erling Haaland", "Kevin De Bruyne", "James LeBron", "Messi"),
+  goals = c(36, NA, 3, NA),
+  assists = c(8, 16, NA, NA),
+  games = c(35, 32, NA, NA)
+))
+
+players %>% filter(!is.na(goals) & !is.na(games))
+
+players %>% drop_na()
+
+players %>% drop_na(goals)
+```
+
+
+
+```{r}
+str_split(players$player, pattern = " ")
+```
+
+
+
+
