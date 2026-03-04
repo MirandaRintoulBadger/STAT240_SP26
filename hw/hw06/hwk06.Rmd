@@ -101,7 +101,7 @@ A student decided to guess randomly on their True/False quiz.  The number of que
 
 # Problem 6
 
-Match the four binomial distributions given below to the appropriate graph in `p5_choices.png`. Briefly justify your choices.
+Match the four binomial distributions given below to the appropriate graph in `p6_choices.png`. Briefly justify your choices.
 
 - Binom(12, 0.5)
 
