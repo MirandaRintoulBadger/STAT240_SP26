@@ -1,0 +1,149 @@
+---
+title: "Homework 6"
+author: "Student's Name Here"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+library(tidyverse)
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/homework/hw06` on your local computer.
+
+
+# Problem 1
+
+Your friend wants to study how many classes UW-Madison students take each semester.  They propose the following probability distribution for $X$, the number of classes taken:
+
+| x        | 1    | 2    | 3   | 4   | 5   |
+| -------- |:----:|:----:|:---:|:---:|:---:|
+| P(X = x) | 0.15 | 0.05 | 0.4 | 0.3 | 0.1 |
+
+(a) Find the expected value and standard deviation of $X$.  You can use R.
+
+(b) 10 students are asked how many classes they are taking, giving data (4, 3, 5, 3, 4, 4, 1, 3, 4, 4), which has an average of 3.5.  Assuming your friend's model in (a) is true, which of these statements do you think is most reasonable?  Explain your reasoning.
+
+- The average of 10 students will be greater than or equal to 3.5 about 50% of the time.
+- The average of 10 students will be greater than or equal to 3.5 about 20% of the time.
+- The average of 10 students will be greater than or equal to 3.5 about 1% of the time.
+
+    Do not do any formal calculations - just identify which statement makes the most sense intuitively.
+
+(c) Based on your observed sample of 10 students with sample mean 3.5, do you think your friend's model from (a) is incorrect?  What would your sample data need to look like for you to doubt your friend's model?
+
+
+# Problem 2
+
+For each of the following descriptions, say whether the random variable is reasonably approximated by a binomial random variable or not, and explain your answer. If the variable is binomial, identify $n$ the number of trials and $p$ the probability of success.  If it is not binomial, identify which of the "BINS" assumptions is violated.
+
+(a) A fair die is rolled until a 1 appears, and $X$ denotes the number of rolls.
+
+(b) Twenty of the different Badger basketball players each attempt 1 free throw and $X$ is the total number of successful attempts.
+
+(c) A die is rolled 50 times. Let $X$ be the face that lands up most often.
+
+(d) In a bag of 10 batteries, I know 2 are old. Let $X$ be the number of old batteries I choose when taking a sample of 4 to put into my calculator.
+
+(e) It is reported that 20% of Madison homeowners have installed a home security system. Let $X$ be the number of homes without home security systems installed in a random sample of 100 houses in the Madison city limits.
+
+
+# Problem 3
+
+(a) Create a data frame with the following columns.
+Each row corresponds to a single $\text{Binom}(n, p)$ distribution. The first two columns are the parameters of the distribution.
+
+- `n`, which is always equal to 100
+- `p`, which ranges from 0 to 1 by 0.01 $(0, 0.01, 0.02, \ldots , 0.99, 1)$
+- `mu`, the mean
+- `sigma`, the standard deviation
+- `q90`, the 0.9 quantile (or 90th percentile)
+
+(b) Create line plots of the following:
+- $\sigma$ versus $p$
+- 90th percentile versus $p$
+
+(c) How does the standard deviation change with $p$?
+
+(d) Comment on the relationship between the 90th percentile and $p$.
+
+
+# Problem 4
+
+The random variable $X$ has the $\text{Binom}(100, 0.2)$ distribution.
+
+(a) Find an integer $a$ so that $P(X \le a) \ge 0.5$. (There are many choices for $a$).  Show the value of $P(X \le a)$ with `pbinom()`.
+
+(b) Find an integer $b$ so that $P(X \ge b) \ge 0.5$. (There are many choices for $b$). Show the value of $P(X \ge b)$ with `pbinom()`. 
+
+(c) Find an integer $c$ so that $P(X \le c) \ge 0.5$ *and* $P(X \ge c) \ge 0.5$. Show the values of $c$, $P(X \le c)$, and $P(X \ge c)$.
+
+
+# Problem 5
+
+A student decided to guess randomly on their True/False quiz.  The number of questions they answer correctly is $\text{Binom}(10, 0.5)$.
+
+(a) Write code with `dbinom`, `pbinom`, or `qbinom` to calculate each value or probability.
+
+    "I know I must have gotten at least one question right!"
+
+    "I probably got 3 - 5 of the questions right."
+
+    "I feel lucky.  The answers I picked are better than 90% of my other attempts!"
+
+(b) Explain why the 90th percentile is not 9. 
+
+
+# Problem 6
+
+Match the four binomial distributions given below to the appropriate graph in `p5_choices.png`. Briefly justify your choices.
+
+- Binom(12, 0.5)
+
+- Binom(12, 0.6)
+
+- Binom(10, 0.1)
+
+- Binom(10, 0.3)
+
+
+# Problem 7
+
+(a) Identify whether each of the statements below are *always true*, *sometimes true*, or *never true* for Binomial random variables.  Briefly explain your answers. You can optionally use R to help make your argument.
+
+- The distribution has no limits and covers the entire number line.
+
+- The 50th percentile is less than the 60th percentile.
+
+- If $\mu$ is the mean of the distribution, then the probability distribution graphically reaches its maximum at $\mu$.
+
+- If $\mu$ is the mean of the distribution, then the probability of getting exactly $\mu$ on a random draw is non-zero.
+
+(b) Repeat part (a), but assess the truth of each statement for Normal random variables.
+
+- The distribution has no limits and covers the entire number line.
+
+- The 50th percentile is less than the 60th percentile.
+
+- If $\mu$ is the mean of the distribution, then the probability distribution graphically reaches its maximum at $\mu$.
+
+- If $\mu$ is the mean of the distribution, then the probability of getting exactly $\mu$ on a random draw is non-zero.
+
+
+# Problem 8
+
+Use `pnorm()` to find the following probabilities on $X \sim N(0, 1)$.
+
+(a) $P(X < -1)$
+
+(b) $P(X > 1)$
+
+(c) $P(0.5 < X < 2)$
+
+(d) $P(|X| > 0.75)$
+
