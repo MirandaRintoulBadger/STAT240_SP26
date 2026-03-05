@@ -232,9 +232,15 @@ p <- 0.5
 mu <- n*p
 sigma <- sqrt(n*p*(1-p))
 
-gbinom(n, p, scale=TRUE) +
-  geom_norm_density(mu, sigma, color = "red") +
-  theme_minimal()
+binom1 <- tibble(x = 0:100, prob = dbinom(0:100, 100, 0.5))
+
+ggplot(binom1, aes(x = x, y = prob)) +
+  geom_col()  +
+  geom_function(
+  fun = dnorm,
+  args = list(mean = mu, sd = sigma),
+  color = "red") +
+  scale_x_continuous(limits = c(25, 75))
 ```
 
 
@@ -250,9 +256,15 @@ p <- 0.01
 mu <- n*p
 sigma <- sqrt(n*p*(1-p))
 
-gbinom(n, p, scale=TRUE) +
-  geom_norm_density(mu, sigma, color = "red") +
-  theme_minimal()
+binom2 <- tibble(x = 0:100, prob = dbinom(0:100, 100, 0.01))
+
+ggplot(binom2, aes(x = x, y = prob)) +
+  geom_col()  +
+  geom_function(
+  fun = dnorm,
+  args = list(mean = mu, sd = sigma),
+  color = "red") +
+  scale_x_continuous(limits = c(0, 25))
 ```
 
 
