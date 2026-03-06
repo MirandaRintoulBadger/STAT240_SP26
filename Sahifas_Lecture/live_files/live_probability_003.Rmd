@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+
 Consider rolling two dies and finding the sum of their faces.
 
 ```{r}
