@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+
 ```{r}
 prob = tibble(x = 2:12, `P(x)` = c(1:6, 5:1)/36)
 
