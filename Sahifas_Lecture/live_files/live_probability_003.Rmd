@@ -1,0 +1,49 @@
+---
+title: "Live_probability"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+Consider rolling two dies and finding the sum of their faces.
+
+```{r}
+prob = tibble(x = 2:12, `P(x)` = round(c(1:6, 5:1)/36, 2))
+
+prob
+sum(prob$`P(x)`)
+
+mean = sum(prob$x*prob$`P(x)`) # expected value or the mean of the prob dist for X
+
+mean(prob$x) # usually doesn't work, functions like mean, sd, var are best used with data points
+mean(prob$`P(x)`)
+```
+
+```{r}
+sum((prob$x - mean)^2*prob$`P(x)`) # variance
+
+sqrt(sum((prob$x - mean)^2*prob$`P(x)`))
+```
+
+
+
+
+
+
+
+```{r}
+tibble(
+  x = 0:4,
+  p = c(0.15, 0.25, 0.05, 0.35, NA)
+) %>%
+  pivot_wider(names_from = x, values_from = p) %>% 
+  mutate(x = "P(X=x)") %>% 
+  relocate(x)
+```
+
+
