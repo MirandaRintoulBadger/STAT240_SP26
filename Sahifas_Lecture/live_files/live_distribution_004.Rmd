@@ -1,0 +1,97 @@
+---
+title: "live_distributions"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+source("../scripts/ggprob.R")
+```
+
+```{r}
+# d function gives you the prob of a point x in the binom(size, prob) distribution
+
+# Example: flip a coin 10 times
+
+# Find the prob of getting 4 heads
+
+dbinom(4, 10, 0.5)
+
+dbinom(0:10, 10, 0.5)
+
+sum(dbinom(0:10, 10, 0.5))
+```
+
+
+```{r}
+# p function, by default, gives the prob to the left of the point q (P(X ≤ q))
+
+# find the prob of getting atmost 4 heads (P(X ≤ 4))
+
+pbinom(4, 10, 0.5)
+
+# find the prob of getting atleast 4 heads (P(X ≥ 4))
+
+sum(dbinom(4:10, 10, 0.5))
+1 - sum(dbinom(0:3, 10 , 0.5))
+
+pbinom(3, 10, 0.5, lower.tail = F)
+1 - pbinom(3, 10, 0.5)
+
+pbinom(4, 10, 0.5, lower.tail = F)
+```
+
+```{r}
+# q function (inverse of the p function) gives a point q which covers a given prob `p`
+
+# Median of the 10 coin flips, p = 0.5 0, 1, 2,, .... , 11
+
+qbinom(0.5, 10, 0.5)
+qbinom(0.5, 10, 0.5, lower.tail = F)
+
+pbinom(5, 10, 0.5)
+pbinom(4, 10, 0.5, lower.tail = F)
+pbinom(4, 10, 0.5)
+
+# 25th percentile, 75th percentile, 90th percentile
+
+qbinom(pbinom(5, 10, 0.5), 10, 0.5) # p and q are inverses of each other
+```
+
+```{r}
+rbinom(10, 10, 0.5)
+```
+
+```{r}
+gbinom(10, 0.5) + geom_binom_density(10, 0.5, a = 3, b = 4 , color = "red")
+```
+
+# Normal Distribution
+
+
+N(10, 0.2) (mean, sd)
+
+```{r}
+# find the density of getting 6
+dnorm(6, 10, 0.2)
+dnorm(6.1, 10, 0.2)
+dnorm(6.11, 10, 0.2)
+dnorm(6.000001, 10, 0.2)
+```
+
+```{r}
+pnorm(6, 10, 0.2)
+pnorm(6, 10, 0.2, lower.tail = F)
+1 - pnorm(6, 10, 0.2)
+1 - pnorm(5, 10, 0.2) # strict and non-strict inequalities are the same 
+```
+```{r}
+qnorm(0.9, 10, 0.2)
+pnorm(10.25631, 10, 0.2)
+```
+
+
+
