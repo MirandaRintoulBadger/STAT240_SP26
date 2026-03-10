@@ -1,0 +1,91 @@
+---
+title: "live_distributions"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+source("../scripts/ggprob.R")
+```
+
+```{r}
+# d function gives you the prob at a point x
+# Example: Flip a coin 10 times
+
+# prob of getting 4 heads
+
+dbinom(4, 10, 1/2)
+choose(10, 4)*(1/2)^4 * (1/2)^6
+
+sum(dbinom(0:10, 10, 1/2))
+```
+
+
+```{r}
+# p function by default gives you the probability to the left of a point q.
+
+# find the prob of getting at most 4 = P(x<= 4)
+
+pbinom(4, 10, 1/2)
+
+sum(dbinom(0:4, 10, 1/2))
+
+# find the prob of getting atleast 4 = P(x > 3) or P(X ≥ 4)
+
+1 - pbinom(3, 10, 1/2)
+pbinom(3, 10, 1/2, lower.tail = F)
+
+sum(dbinom(4:10, 10, 1/2))
+
+
+1 - pbinom(4, 10, 1/2) # this will give you the wrong prob
+```
+
+```{r}
+# q function by default gives you the point that covers a certain prob to the left, is the inverse of the p function
+
+# median (and the mean since this is a symmetric binomial distribution) of the 10 coin flips
+
+qbinom(0.5, 10, 1/2)
+qbinom(0.5, 10, 1/2, lower.tail = F)
+
+pbinom(4, 10, 1/2)
+pbinom(5, 10, 1/2)
+pbinom(4, 10, 1/2, lower.tail = F)
+sum(dbinom(0:5, 10, 1/2))
+sum(dbinom(5:10, 10, 1/2))
+
+qbinom(pbinom(5, 10, 1/2), 10, 1/2)
+
+# 90th percentile, 75th percentile, 25th percentile
+```
+
+```{r}
+# r function generates a sample of size 'n'
+
+rbinom(10, 10, 1/2)
+```
+
+
+```{r}
+gbinom(2000, 0.1)
+gbinom(2000, 0.4)
+```
+
+
+# Normal Distribution
+
+- N(10, 0.2)
+
+```{r}
+dnorm(2.67, 10, 0.2)
+dnorm(2.671, 10, 0.2)
+dnorm(2.6712, 10, 0.2)
+
+pnorm(2.6, 10, 0.7)
+```
+
+
