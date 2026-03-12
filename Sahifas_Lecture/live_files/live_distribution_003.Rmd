@@ -88,4 +88,77 @@ dnorm(2.6712, 10, 0.2)
 pnorm(2.6, 10, 0.7)
 ```
 
+```{r}
+qnorm(pnorm(10.25631, 10, 0.2), 10, 0.2)
+
+pnorm(qnorm(0.6, 10, 0.2), 10, 0.2)
+```
+
+```{r}
+ggplot() +
+  geom_norm_density(mu = 100, sigma = 1, color = "blue") +
+  geom_norm_density(mu = 100, sigma = 2, color = "red") +
+  geom_norm_density(mu = 100, sigma = 3, color = "darkgreen")
+
+
+ggplot() +
+  geom_norm_density(mu = 105, sigma = 1, color = "blue") +
+  geom_norm_density(mu = 100, sigma = 1, color = "red") +
+  geom_norm_density(mu = 110, sigma = 1, color = "darkgreen")
+```
+
+
+```{r}
+qnorm(0.78, 2, 0.5)
+```
+
+```{r}
+(2.38- 2)/0.5
+```
+
+```{r}
+n = 10
+p = 0.2
+```
+
+
+```{r}
+mean(rbinom(50, n, p)) # sample mean
+
+mean = c()
+for (i in 1:1000){
+  mean[i] = mean(rbinom(50, n, p))
+}
+mean
+
+mean(mean) # expected value of the sample averages
+
+ggplot(mapping = aes(x = mean)) + geom_density() + geom_vline(xintercept =  mean(mean), color = "red")
+```
+
+
+```{r}
+a = 2
+b = 5
+random_means_uniform = tibble(x = replicate(n = 10000, mean(runif(10, a, b))))
+
+ggplot(tibble(x=c(a,b), y=1/(b-a))) +
+  geom_line(aes(x,y), size=3, color = "blue") +
+  geom_density(aes(x), data = random_means_uniform) +
+  geom_segment(aes(x, y, xend=x, yend=rep(0,2)), size=3, color = "blue") +
+  geom_segment(aes(x, y, x=a-1, y=0, xend=a, yend=0), size=3, color = "blue") +
+  geom_segment(aes(x=b+1, y=0, xend=b, yend=0), size=3, color = "blue") +
+  scale_x_continuous(breaks = seq(a-1,b+1)) +
+  labs(
+    title = "Sampling Distribution (Black) of Uniform(2, 5) (Blue)"
+  )
+```
+
+
+```{r}
+gbinom(1000, 0.01)
+```
+
+
+
 
