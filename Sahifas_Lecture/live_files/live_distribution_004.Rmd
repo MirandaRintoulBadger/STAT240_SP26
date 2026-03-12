@@ -92,6 +92,59 @@ pnorm(6, 10, 0.2, lower.tail = F)
 qnorm(0.9, 10, 0.2)
 pnorm(10.25631, 10, 0.2)
 ```
+```{r}
+qbinom(0.9, 10, 0.2)
+pbinom(4, 10, 0.2)
+```
+
+```{r}
+qnorm(pnorm(10, 11, 0.3), 11, 0.3)
+pnorm(qnorm(0.9, 11, 0.3), 11, 0.3)
+```
+
+```{r}
+ggplot() +
+  geom_norm_density(mu = 0, sigma = 0.5, color = "blue") +
+  geom_norm_density(mu = 0, sigma = 1, color = "red") +
+  geom_norm_density(mu = 0, sigma = 2, color = "darkgreen")
+
+ggplot() +
+  geom_norm_density(mu = 0, sigma = 1, color = "blue") +
+  geom_norm_density(mu = 1, sigma = 1, color = "red") +
+  geom_norm_density(mu = 2, sigma = 1, color = "darkgreen")
+```
+
+
+```{r}
+ggplot() +
+  geom_norm_density(mu = 0, sigma = 0, color = "blue") +
+  geom_norm_density(mu = 1, sigma = 0, color = "red") +
+  geom_norm_density(mu = 2, sigma = 0, color = "darkgreen")
+```
+
+
+```{r}
+rbinom(30, 10, 0.2) # E(X) = 2
+
+sample_means = c()
+
+for (i in 1:100000){
+  sample_means[i] = mean(rbinom(100, 10, 0.2)) # sample means 
+}
+sample_means[1:20]
+
+mean(sample_means)
+
+ggplot(mapping = aes(sample_means)) + geom_density() + geom_vline(xintercept = mean(sample_means), color = "red")
+```
+
+
+```{r}
+ggplot() +
+  geom_norm_density(mu = 2, sigma = sqrt(10*0.2*0.8/30), color = "blue") +
+  geom_norm_density(mu = 2, sigma = sqrt(10*0.2*0.8/100), color = "red") +
+  geom_norm_density(mu = 2, sigma = sqrt(10*0.2*0.8/1000), color = "darkgreen")
+```
 
 
 
