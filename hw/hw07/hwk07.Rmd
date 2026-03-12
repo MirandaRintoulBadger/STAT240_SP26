@@ -112,9 +112,20 @@ For each of the three prompts, explain which condition will result in a *narrowe
 
 The code below calculates the Z critical value to build a 95% confidence interval.
 
+```{r}
+qnorm(0.975)
+```
+
 (a) Edit the code to instead calculate the critical value for 98% confidence.
 
 (b) Next, generalize this operation to any confidence level.  Uncomment and edit the code below to return the critical value for a (1-alpha) confidence interval for any choice of alpha.
+
+```{r}
+# For example, a 90% CI
+alpha <- 0.1
+
+# qnorm(???)
+```
 
 (c) What would be the critical value for a 100% confidence interval?
 
