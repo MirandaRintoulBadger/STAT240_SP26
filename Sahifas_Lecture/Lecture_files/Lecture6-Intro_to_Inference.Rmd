@@ -272,7 +272,7 @@ $$
 
 -   Where the **point estimate** is your estimate of the true parameter based on your data... (such as the sample proportion $\hat{p}$ for the true $p$, or the sample mean $\bar{x}$ for the true $\mu$)
 
--   the **Critical value** also known as **quantile confidence score** is the ($c$ + (1-$c$)/2) or $1- \dfrac{\alpha}{2}$ quantile of the sampling distribution and $c$ is the confidence level and $\alpha= 1-c$. c
+-   the **Critical value** also known as **quantile confidence score** is the ($c$ + (1-$c$)/2) or $1- \dfrac{\alpha}{2}$ quantile of the sampling distribution and $c$ is the confidence level and $\alpha= 1-c$. The critical value is found using the `qdist()` functions we learned in previous lecture notes where the dist is just the sampling distribution. In general, $cv = qdist($c$ + (1-$c$)/2)$.
 
 -   and the **standard error of the point estimate** is a known formula based on what point estimate you are using.
 
