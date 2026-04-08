@@ -1,0 +1,287 @@
+---
+title: "STAT 240: Chapter 8 - Inference on Means"
+author: "Sahifa Siddiqua"
+date: "Spring 2026"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = T, message = FALSE, warning = TRUE)
+library(tidyverse)
+source("../scripts/ggprob.R")
+```
+
+# Overview
+
+
+## Learning Outcomes
+
+These lecture notes will focus on how to:
+    - Conceptualize statistical inference such as confidence interval or p-value for a single mean.
+    - Conceptualize statistical inference such as confidence interval or p-value for a difference in means.
+    
+## Preliminaries
+
+Make sure you have the file `ggprob.R` in `STAT240/scripts`. Download `boston_marathon.txt` to `STAT240/data`. And make sure this lecture note is downloaded to `STAT240/lecture`.
+
+## Dataset
+
+The Boston Marathon is a prestigious annual 26.2 mile race that has been held almost every year for centuries. In most years, the Boston Marathon is held in April (though, in 2011 it was delayed to October). There are different records and sub-competitions based on the times of runners in different groups of sex and various age ranges, 18-34, 35-39, 40-44, … 75-79, and 80+. Each year, thousands of runners run the marathon.
+
+The `boston_marathon.txt` contains data on the times of all runners of the Boston Marathon from different years. This dataset was obtained from the [BOSTON MARATHON PROJECT-SUPPLEMENTARY INFORMATION page](https://rls.sites.oasis.unc.edu/boston.html). 
+
+In this lecture note, we will only be considering year 2010 and 2011 (we will not analyzing 2013) and the age group of 18-34. Thus, we few addition/changes to the dataset:
+
+- Eliminate data from 2013
+- Create a column called `sex` for better labeling genders (in the original dataset, the Gender column contains numbers 1 and 2, where, 1 is for F and 2 is for M).
+- Create a column called `total_time` for the sum of the times for runners.
+- Create a column called `age_range` variable
+
+```{r, echo=F}
+bm_orig = read_table("../data/boston_marathon.txt",
+                col_types = cols(.default = col_double()))
+
+bm = bm_orig %>% 
+  filter(!is.na(`K40-Fin`)) %>% 
+  filter(Year < 2013) %>% 
+  arrange(Year, BibNum) %>% 
+  select(-starts_with("Start"), -HalfMar, -Age2014) %>% 
+  mutate(sex = case_when(
+    Gender1F2M == 1 ~ "female",
+    Gender1F2M == 2 ~ "male")) %>% 
+  mutate(total_time = pmap_dbl(select(., starts_with("K")), sum)) %>% 
+  mutate(age1 = case_when(
+    Age < 35 ~ 18,
+    Age >= 80 ~ 80,
+    TRUE ~ floor(Age/5)*5),
+    age2 = case_when(
+      Age < 35 ~ 34,
+      TRUE ~ age1 + 4),
+    age_range = case_when(
+      age1 == 80 ~ "80 and older",
+      TRUE ~ str_c(age1,"-",age2))) %>% 
+  select(-Gender1F2M, -age1, -age2) %>% 
+  relocate(BibNum, Year, sex, Age, age_range, total_time)
+
+bm
+```
+
+In this lecture note, we will mostly be working with the `sex`, `age_range` and `total_time`.
+
+# Introduction
+
+One critical aspect of numerical data is it's means or the sample mean. The sample mean can be calculated for one group, two independent groups, two paired groups, and many other type of group settings. Inference on means is to deduce an idea about the population means from all these sample means. The techniques for each setting vary slightly, but will all share structural similarities.
+
+Similar to how we can model the behavior of the sample proportion $\widehat{p}$ using a normal distribution, the sample mean $\overline{x}$ can also be modeled using a normal distribution when certain conditions are met. However, we will soon learn that a new distribution, called the $t$-distribution, is needed when working with the sample mean. As with the sample proportion $\widehat{p}$, the variability of the sample mean is well described by the mathematical theory given by the Central Limit Theorem. However, we will see this soon because of missing information about the inherent variability in the population ($\sigma$), a $t$-distribution is used in place of the standard normal when performing hypothesis test or confidence interval analyses.
+
+# Inference in single mean
+
+Inference on single mean deals with the population mean, $\mu$. It starts with a question like
+
+> Is the true mean be equal to or more than or less than a value? Or what values can the true mean take?
+
+As we have seen before, these questions can be addressed through confidence intervals and hypothesis testing. To perform any of those inferences, we need the model first.
+
+Example: In the Boston marathon dataset, one might ask the question:
+
+> Can we say that the average time taken to complete the marathon is 4rs? Or What is the range in which the true average time taken to complete the marathon lies?
+
+## Model 
+
+Here, we assume that the observed data follows some true distribution $D$ (which is irrelevant!), and that true distribution $D$ has expected value $\mu$ and standard deviation $\sigma$. $D$ **does not have to be normal**, but we will write this distribution as $D(\mu, \sigma)$, just for convenience. 
+
+For means, we connect the sample to the parameter using the Central Limit Theorem. To use the CLT, we start by considering that each observation in the data is a value taken by a variable on it's own and which has the distribution, $D(\mu, \sigma)$ and that each of these variables are **independent**.
+
+$$
+X_i \sim D(\mu, \sigma), \quad \text{for $i = 1, \ldots, n$}
+$$
+
+Example: In the Boston marathon example, all we do is connect **each individual runner's time** to $D(\mu, \sigma)$, each with their own random variable.
+
+We will have $n = 3557$ random variables in our model, one for each runner's time. We have $3557$ random variables where, $X_1$ is the random variable for the first runner's time, $X_2$ is the random variable for the second runner's time, etc.
+
+
+## Point Estimate and Sampling Distribution
+
+The **point estimate** for $\mu$, the population mean, is $\bar{x} = \frac{1}{n}\sum_{i=1}^nx_i$, or the **sample mean**. We know the **sampling distribution** of $\bar{x}$ is derived using the Central Limit Theorem:
+
+> **Central Limit Theorem states**: Consider sampling $n$ points from any distribution $D$, which has expected value $\mu$ and standard deviation $\sigma$, and then taking the mean of those $n$ points as a random variable $\bar{X}$. Then, $\bar{X} \sim N(\mu, \frac{\sigma}{\sqrt{n}}$).
+
+
+It is important to note that $SE({\bar{X}}) = \frac{\sigma}{\sqrt{n}}$ is based on $\sigma$, a parameter of the initial distribution $D$, which we almost always do not know. Just as we have seen in case of the proportions, the intuitive first response is to replace $\sigma$, the unknown **population** standard deviation, with $s$, the **sample** standard deviation. But that impacts our distribution of $\bar{X}$. 
+
+To better understand the new distribution, let's standardize our $\bar{X}$. 
+
+$$z = \frac{\bar{X}-\mu}{\sigma}\sim N(0,1)$$
+But as we replace the $\sigma$ with the $s$, we introduce extra variability especially when the samples are small. So, the distribution is similar to the standard normal distribution but accounts for more variability making the distribution fatter than the normal distribution. This new distribution is called the $t$ distribution. 
+
+### The t Distribution! (A new distribution)
+
+> The $t$ distribution is a continuous distribution which has one parameter, the degrees of freedom. It is always centered around 0 and the degrees of freedom controls its spread - higher values of "df" lead to less spread. Since, the "tails are heavier" than N(0,1), it implies that more extreme values are more likely on the $t$ distribution than in N(0,1).
+
+
+> As the degrees of freedom increases towards infinity, the $t$ distribution approaches the standard normal distribution. See this process visually [here](https://rpsychologist.com/d3/tdist/).
+
+So for all the inference about mean we will be using the $t$ distribution as the adjusted sampling distribution. But we also need to remember that the $t$ distribution is already in a standardized format.
+
+##  Confidence Interval For A Single Mean
+
+Just like before, we start of with the general formula, 
+
+$$
+\text{Point Estimate } \pm \text{ Critical Value * Standard Error of PE}.
+$$
+
+OR 
+
+$$
+\text{Point Estimate } \pm \text{qdist}\left(c+\frac{1-c}{2}\right) * \text{Standard Error of PE}.
+$$
+
+We will use the point estimate as $\bar{x}$. And, the critical value will be obtained from the adjusted sampling distribution of $\bar{x}$ which is the $t$ distribution with $n-1$ degrees of freedom and the standard error is $\frac{s}{\sqrt{n}}$. Thus, 
+
+$$
+\bar{x} \pm \text{qt}\left(c+\frac{1-c}{2}\right)*\frac{s}{\sqrt{n}}
+$$
+Example: Continuing with the BM example, let's summarize our dataset to get the sample mean and deviation
+```{r}
+bm_summary = bm %>% 
+  filter(sex == "female", age_range == "18-34", Year == 2010) %>% 
+  summarize(averageTime = mean(total_time), sdTime = sd(total_time), n = n())
+
+bm_summary
+
+xbar = bm_summary$averageTime
+s = bm_summary$sdTime
+n = bm_summary$n
+```
+
+Now let's build a 95% confidence interval for the true average time taken to complete the marathon.
+
+```{r}
+c = 0.95
+se = s/sqrt(n)
+
+moe = qt(c + (1-c)/2, df = n - 1) * se
+
+left = xbar - moe
+right = xbar + moe
+
+c(left, right)
+```
+
+## Interpretation
+
+> We are **95% confident** that the true average time for an 18-34 year old female Boston Marathon runner is between 234.3 minutes (3 hours, 54.3 minutes) and 236.7 minutes (3 hours, 56.7 minutes).
+
+*Note: We can predict this true average with such precision (two minute range) because the margin of error decreases when* $n$ increases ($n$ is in the denominator of the standard error), and we have relatively large $n$ (3000+ runners).
+
+
+## Hypothesis Testing
+
+Hypothesis Testing for $\mu$ follows all the steps outlined in the intro to inference lecture notes. And here we will demonstrate the hypothesis test with the Boston marathon question: Can we say that the average time taken to complete the marathon is 4rs?
+
+- *Step 1: Model Statement and stating the hypothesis*
+
+Each individual runner's time comes from the underlying distribution $D$, which has expected value $\mu$ and standard deviation $\sigma$. In mathematical notation, we write:
+
+$$
+X_i \sim D(\mu, \sigma), \quad \text{for } i = 1, \ldots, n.
+$$
+
+Where $X_i$ represents the $i$th runner's time. $\mu$ is the true underlying average time for this group, and $\sigma$ is the true underlying average standard deviation for this group's times.
+
+The only **assumption** with this model is that each runner's time does not affect any others, i.e., they are **independent**.
+
+Now, moving on to the hypothesis:
+
+$$
+H_0: \mu = 240 \\
+H_A: \mu \neq 240
+$$
+
+We choose a two sided test, because we do not know how or what the average time of the marathon should be, so it is safer to go with a two sided test.
+
+- *Step 2: Identifying Test Statistic and Null Distribution*
+
+
+Remember that a test statistic and its known null distribution have to come from **the sample and the null hypothesis**. It cannot have any dependence on unknown parameters. Thus, 
+
+Our test statistic for a single mean is $$t = \frac{\bar{x} - \mu_{H_0}}{s/\sqrt{n}} \sim t(n-1).$$  
+
+Here, the null hypothesis was $\mu = 240$. Substituting that in, so we end up with a test statistic and null distribution of
+
+$t = \frac{\bar{x} - 240}{s/\sqrt{3557}} \sim t(3556)$.
+
+
+- *Step 3: Decision making process *
+
+Recall that in this step, we set a level of significance and find the probability of getting a value as or more extreme than the one obtained from our data, also known as the p-value.
+
+Let's look at the null distribution and annotate the observed value of our test statistic:
+
+```{r}
+test_stat = (xbar - 240) / (s / sqrt(n))
+
+gt(df = n - 1) +
+  geom_vline(xintercept = test_stat, color = "red")
+```
+
+Because the t-distribution is symmetric, we can conclude that all values to the left of `test_stat` (which is negative) are less likely, and all values to the right of `abs(test_stat)` are less likely.
+
+It can also be noted that since the test statistic is negative, it can be said that the true average is less that 4hrs.
+
+Visualization of the left tail (notice how small the values are on the y axis):
+
+```{r}
+gt(df = n - 1, a = -8, b = -7) +
+  geom_t_fill(df = n - 1, a = -8, b = test_stat)
+```
+
+Both tails constitute evidence for the alternative hypothesis, $\mu \neq 240$, so we will include both tails in our p-value calculation. Recall that the p-value is the area/probability of the outcomes under the null distribution. In this case, the R function we will use is the `pt()` functions which is similar to the `pnorm()` functions and uses the df (parameter) as its second argument.
+
+```{r}
+# Note: You should always have the visual in your head! If your test_stat is positive, you need to take the area to its RIGHT!
+# If this really bothers you, you can always take the area to the left of -abs(test_stat), which is always negative.
+
+left_tail = pt(test_stat, df = n-1)
+right_tail = pt(abs(test_stat), df = n-1, lower.tail = FALSE)
+
+left_tail + right_tail
+
+# Or using the general format of finding two sided p-value (and also since t distribution is symmetric)
+
+p_val = 2*left_tail
+```
+
+- *Step 4: Interpret In Context*
+
+> There is strong evidence for the true underlying average time for a 18-34 year old female Boston Marathon runner in 2010 being different than 4 hours (p $\approx$ 0, one sample t-test).
+
+
+## Introducing: t.test
+
+> `t.test` is an R function that takes in **a vector of raw data** and returns a **confidence interval** and output from a **hypothesis test**.
+
+`t.test` is named after the hypothesis test for a mean or difference in means, which we will see in just a moment - it is named such because of its dependence on the t distribution.
+
+By default, it constructs 95% confidence interval and correspondingly does a two sided hypothesis test at 5% significance for the null value as 0 (i.e, $H_0: \mu = 0$). But it can all be changed.
+
+
+Example:
+
+```{r}
+times = bm %>% filter(sex == "female" & age_range == "18-34" & Year == 2010) %>% pull(total_time) # pull(x) works like dataframe$x, extracts the column x from the dataframe as a vector
+
+t.test(times)
+```
+
+```{r}
+t.test(times, conf.level = 0.9)
+```
+
+
+
+
+
+
