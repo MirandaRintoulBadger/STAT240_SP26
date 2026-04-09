@@ -1,0 +1,336 @@
+\documentclass[xcolor={dvipsnames,svgnames},14pt]{beamer}
+\usetheme[progressbar=none]{Singapore}
+\setbeamercolor*{structure}{fg=cyan}
+\setbeamercolor*{frametitle}{fg=black}
+\setbeamercolor*{title}{fg=black}
+\usepackage{hyperref}
+\usepackage{multicol}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+    }
+
+\makeatletter
+\let\beamer@writeslidentry@miniframeson=\beamer@writeslidentry
+\def\beamer@writeslidentry@miniframesoff{%
+  \expandafter\beamer@ifempty\expandafter{\beamer@framestartpage}{}% does not happen normally
+  {%else
+    % removed \addtocontents commands
+    \clearpage\beamer@notesactions%
+  }
+}
+\newcommand*{\miniframeson}{\let\beamer@writeslidentry=\beamer@writeslidentry@miniframeson}
+\newcommand*{\miniframesoff}{\let\beamer@writeslidentry=\beamer@writeslidentry@miniframesoff}
+\makeatother
+
+\miniframesoff
+
+\setbeamertemplate{navigation symbols}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+\setbeamercolor{footline}{fg=black}
+\setbeamerfont{footline}{series=\bfseries}
+
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{graphicx, verbatim}
+\usepackage{multirow}
+\usepackage{xcolor}
+\DeclareRobustCommand{\stirling}{\genfrac\{\}{0pt}{}}
+
+
+%Information to be included in the title page:
+\title{Two-Sample Mean Inference}
+\date{}
+\subtitle{Estimating a difference in means}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+Download the section 14 .Rmd handout to \\ 
+\texttt{STAT240/lecture/sect14-two-means}. \\~\\
+
+Material in this section is covered by Chapter 13 on
+the notes website.
+\\~\\
+
+Download the file \texttt{cat\_breeds\_clean.txt} to \texttt{STAT240/data}.
+\end{frame}
+
+\section{Equal variances T}
+
+\begin{frame}
+Continue working with the cat sleep data. \\~\\
+
+What is the change in the average sleep time for fixed male ragdoll cats versus intact male ragdoll cats? \\~\\
+\end{frame}
+
+\begin{frame}
+Inference for $\mu_1 - \mu_2$: \\~\\ \begin{itemize}
+\item Point estimate: $\bar{X}_1 - \bar{X}_2$
+\item Standard error:
+$$\sqrt{\frac{S^2_1}{n_1} + \frac{S^2_2}{n_2}}$$ 
+\\~\\
+\item Model: T distribution \\~\\
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+Assume the groups have two different populations: \begin{align*}
+X_{1,i} & \sim D_1(\mu_1,\; \sigma_1) \\
+X_{2,i} & \sim D_2(\mu_2,\; \sigma_2)
+\end{align*}
+and populations 1 and 2 are independent. \\~\\
+We allow the distributions to differ completely.  All that matters is $\bar{X}_1$ and $\bar{X}_2$ are approximately normal.
+\end{frame}
+
+\begin{frame}
+$$\text{point estimate } \pm \text{ critical value } \times \text{ standard error}$$
+\begin{itemize}
+\item For $\mu_1 - \mu_2$, the point estimate is $\bar{x}_1 - \bar{x}_2$
+\item The standard error combines $\sigma_1$ and $\sigma_2$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+The standard error is
+$$\sqrt{se_1^2 + se_2^2} \;=\; \sqrt{\frac{\sigma^2_1}{n_1} + \frac{\sigma^2_2}{n_2}}$$
+This gives sampling distribution
+$$\bar{X}_1 - \bar{X}_2 \quad\dot{\sim} \quad N\Big(\mu_1 - \mu_2,\;\; \sqrt{\frac{\sigma^2_1}{n_1} + \frac{\sigma^2_2}{n_2}}\Big)$$
+\end{frame}
+
+
+\begin{frame}
+This suggests a normal critical value.  However, we need to estimate the se.
+$$\hat{se}(\bar{X}_1 - \bar{X}_2) \;=\; \sqrt{\frac{s^2_1}{n_1} + \frac{s^2_2}{n_2}}$$
+\\~\\
+Again, we use a T distribution for our CI and hypothesis test.
+\end{frame}
+
+
+\begin{frame}
+There are two different types of two-sample T test:  \begin{itemize}
+\item Equal variances T (often more powerful)
+\item Unequal variances T (more general) \\~\\
+\end{itemize}
+We can assume equal variances when the sample SDs are within a factor of 2. 
+$$0.5 < \frac{s_1}{s_2} < 2$$
+\end{frame}
+
+\begin{frame}
+When we estimate $\sigma_1 = \sigma_2 = \sigma$, we can simplify the standard error.
+
+$$se \;=\; \sigma \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$$ \\~\\
+
+Estimate $\sigma$ with the \textbf{pooled sd} $s_p$.
+\end{frame}
+
+\begin{frame}
+The pooled sd is a weighted average of the groups.  
+$$s_p \;=\; \sqrt{\frac{(n_{1}-1)s_{1}^2 \;+\; (n_{2}-1)s_{2}^2}{n_{1} + n_{2} - 2}}$$ 
+The weights are $n_1-1$ and $n_2-1$. \\~\\
+In the cats example, the pooled sd is about 2.477.
+\end{frame}
+
+\begin{frame}
+$$s_p \;=\; \sqrt{\frac{(n_{1}-1)s_{1}^2 \;+\; (n_{2}-1)s_{2}^2}{n_{1} + n_{2} - 2}}$$ 
+\begin{itemize}
+\item Is $s_p$ more similar to $s_1$ or $s_2$?
+\item When is $s_p$ an exact average of $s_1$ and $s_2$?
+\item[$\bigstar$] Why do we square the terms, then take an average, then square root?  Why not just average $s_1$ and $s_2$?
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+Now, we can estimate the standard error.
+$$\hat{se} \;=\; s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$$ \\~\\
+Lastly, we use a T with $n_1 + n_2 - 2$ degrees of freedom for the critical value.
+\end{frame}
+
+\begin{frame}
+We are 90\% confident that the difference in sleep time is within (-0.91, 0.35).  More generally, we have
+
+$$\bar{X}_1 - \bar{X}_2 \;\pm\; t_{\alpha/2, n_1+n_2-2}\cdot  s_p\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$$
+\end{frame}
+
+\begin{frame}
+We can also perform a hypothesis test for the difference in means. Let's do a 10\% level test of the difference in sleep times: 
+$$H_0: \mu_1 - \mu_2 = 0 \quad \text{versus} \quad H_A: \mu_1 - \mu_2 \neq 0$$
+\end{frame}
+
+\begin{frame}
+The test statistic (assuming equal variances) is 
+$$T \;=\; \frac{\bar{X}_1 - \bar{X}_2 - 0}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
+and follows a $T$ with $n_1 + n_2 - 2$ degrees of freedom if $H_0$ is true.
+\end{frame}
+
+\begin{frame}
+In general, we can test for any mean difference $\mu_0$:
+$$H_0: \mu_1 - \mu_2 = \mu_0 \quad \text{versus} \quad H_A: \mu_1 - \mu_2 \neq \mu_0$$
+with test statistic
+$$T \;=\; \frac{\bar{X}_1 - \bar{X}_2 - \mu_0}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
+\end{frame}
+
+\section{Unequal variances T}
+
+\begin{frame}
+What if we aren't willing to make the equal variances assumption?  We can still perform a similar T analysis using the more general standard error:
+$$\hat{se}(\bar{X}_1 - \bar{X}_2) \;=\; \sqrt{\frac{s^2_1}{n_1} + \frac{s^2_2}{n_2}}$$
+Let's compare intact male cats and kittens.
+\end{frame}
+
+\begin{frame}
+The T is approximate, and the df is messy.
+$$w \;=\; \frac{\Big(\frac{s^2_1}{n_1} + \frac{s^2_2}{n_2}\Big)^2}{\frac{(s^2_1/n_1)^2}{n_1-1} + \frac{(s^2_2/n_2)^2}{n_2-1}}$$
+\\~\\
+This is the \textbf{Welch} procedure.  The df are ``penalized" according to $s_1$ and $s_2$.
+\end{frame}
+
+\begin{frame}
+The formula for the CI is
+$$\bar{X}_1 - \bar{X}_2 \;\pm\; t_{\alpha/2, w}\cdot \sqrt{\frac{s^2_1}{n_1} + \frac{s^2_2}{n_2}}$$
+\\~\\
+We are 95\% confident that the true difference is within (-1.416, 1.961).  \texttt{t.test()} confirms this.
+\end{frame}
+
+
+\begin{frame}
+Are adult cats more sleepy than kittens?
+$$H_0: \mu_1 - \mu_2 = 0 \quad \text{versus}\quad H_A: \mu_1 - \mu_2 > 0$$
+\\~\\
+Let's complete this test with $\alpha = 0.05$.
+\end{frame}
+
+\begin{frame}
+Our observed test statistic is 
+$$T \;=\; \frac{\bar{X}_1 - \bar{X}_2 - 0}{\sqrt{\frac{s^2_1}{n_1} + \frac{s^2_2}{n_2}}}$$ 
+\\~\\
+If $H_0$ is true, $T$ has a T distribution with $w$ degrees of freedom. \\~\\ \begin{itemize}
+\item Complete the test of the one-sided hypotheses.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\includegraphics[scale=0.7]{t_null.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+For hypotheses
+$$H_0: \mu_1 - \mu_2 = 0 \quad \text{versus}\quad H_A: \mu_1 - \mu_2 > 0$$
+we have p-value
+$$P(T_w > 0.316) = 0.997$$
+and fail to reject $H_0$.
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\includegraphics[scale=0.7]{t_pval.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+$\alpha = 0.05$ rejection region:
+\vspace{-5pt}
+\begin{center}
+\includegraphics[scale=0.65]{t_rej_region.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+P-value calculation: \begin{itemize}
+\item If the alternative is $H_A: \text{diff} < \mu_0$, the p-value is the area \textit{below} the test statistic. 
+\item If the alternative is $H_A: \text{diff} > \mu_0$, the p-value is the area \textit{above} the test statistic. 
+\item If the alternative is $H_A: \text{diff} \neq \mu_0$, the p-value is $2\times$ the area \textit{outside} of the test statistic.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+What if we assumed equal variances?   In general: \begin{itemize}
+\item If the variances are truly equal, the Welch T test is a bit less powerful, but is still accurate. 
+\item If the variances are truly different, the equal variances test can make incorrect conclusions.  \\~\\
+\end{itemize}
+It is safer to assume unequal variances.
+\end{frame}
+
+\section{Paired T test}
+
+\begin{frame}
+Sometimes, two samples of data are \textbf{paired}. \\~\\
+
+Do children grow taller from age 13 to 14?  It doesn't make sense to take independent samples of 13 and 14 year olds. \\~\\
+
+Instead, measure the same individuals at 13 and 14.
+\end{frame}
+
+\begin{frame}
+Five individuals had their heights measured at age 13 and 14.
+\begin{center}
+\begin{tabular}{|l||c|c|c|c|c|}
+\hline
+Height at 13 & 44.1 & 59.0 & 65.9 & 58.7 & 49.3 \\
+\hline
+Height at 14 & 46.3 & 60.5 & 68.2 & 59.4 & 50.6 \\
+\hline
+\end{tabular}
+\end{center}
+\vspace{5pt}
+The two samples are \textit{not independent}, so we can't use one of the previous methods.
+\end{frame}
+
+\begin{frame}
+Instead, study the \textit{differences}.
+\begin{center}
+\begin{tabular}{|l||c|c|c|c|c|}
+\hline
+Height at 13 & 44.1 & 59.0 & 65.9 & 58.7 & 49.3 \\
+\hline
+Height at 14 & 46.3 & 60.5 & 68.2 & 59.4 & 50.6 \\
+\hline
+\hline
+Difference & 2.2 & 1.5 & 2.3 & 0.7 & 1.3 \\
+\hline
+\end{tabular}
+\end{center}
+\vspace{5pt}
+We are back in a one-sample setting!  Parameter:
+$$\mu_{diff} \quad \text{instead of}\quad \mu_1 - \mu_2$$
+\end{frame}
+
+\begin{frame}
+Assume the differences are independent draws from a population:
+$$diff_i \;\sim\; D(\mu, \sigma)$$
+We then have hypotheses
+$$H_0: \mu_{diff} = 0 \quad \text{versus} \quad H_A: \mu_{diff} > 0$$
+\end{frame}
+
+\begin{frame}
+We use the usual one-sample T test statistic
+$$T \;=\; \frac{\bar{diff} - \mu}{S/\sqrt{n}}$$ \\~\\
+which follows a T with $n - 1$ df if $H_0$ is true. \\~\\
+
+Let's complete the test with $\alpha = 0.05$.
+\end{frame}
+
+\begin{frame}
+We have a large positive test statistic and a small p-value, so we reject $H_0$. \\~\\
+
+This is confirmed in \texttt{t.test()}. \\~\\
+
+If we had done a two independent sample test, we get the opposite result!
+\end{frame}
+
+
+\end{document}
+
+
+
+
+
