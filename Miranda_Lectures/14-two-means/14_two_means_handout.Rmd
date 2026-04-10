@@ -1,0 +1,241 @@
+---
+title: "Section 14: Two-Sample Mean Inference"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## CI for a difference in means
+
+### Data tidying
+
+`cat_breeds_clean.csv` contains data on characteristics of domestic cats of different breeds.
+
+```{r}
+cats <- read_csv("../../data/cat_breeds_clean.csv")
+```
+
+
+### Data exploration
+
+Let's compare the basic summaries for each group (fixed vs intact male ragdoll cats).
+
+```{r}
+cats_twomeans_summary <- cats %>% 
+  filter(Age_in_years >= 1) %>%
+  filter(Sex == "male", Breed == "Ragdoll") %>% 
+  group_by(Fixed) %>% 
+  summarize(avgTime = mean(Sleep_time_hours),
+            sdTime = sd(Sleep_time_hours),
+            n = n())
+
+cats_twomeans_summary
+```
+
+Let's also extract the values and save them for later.
+
+```{r}
+xbar1 <- cats_twomeans_summary$avgTime[1]
+xbar2 <- cats_twomeans_summary$avgTime[2]
+s1 <- cats_twomeans_summary$sdTime[1]
+s2 <- cats_twomeans_summary$sdTime[2]
+n1 <- cats_twomeans_summary$n[1]
+n2 <- cats_twomeans_summary$n[2]
+```
+
+
+## Equal variances T
+
+Assuming equal variances, what is the pooled standard deviation?
+
+```{r}
+s_p <- sqrt(((n1 - 1)*s1^2 + (n2 - 1)*s2^2) / (n1 + n2 - 2))
+
+s_p
+```
+
+Now, we can make a 90% confidence interval for the difference in means.
+
+```{r}
+pt_est <- xbar1 - xbar2
+
+se <- s_p * sqrt(1/n1 + 1/n2)
+
+cv <- qt(0.95, df = n1 + n2 - 2)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+We can also perform a hypothesis test.
+
+```{r}
+test_stat <- (xbar1 - xbar2 - 0) / se
+test_stat
+```
+
+The p-value is calculated on the T with n1 + n2 - 2 degrees of freedom.
+
+```{r}
+2*pt(-0.737459, df = n1 + n2 - 2)
+```
+
+We can check our result with `t.test()`.
+
+```{r}
+df1 <- cats %>%
+  filter(Age_in_years >= 1) %>%
+  filter(Sex == "male", Breed == "Ragdoll", Fixed == F) 
+
+df2 <- cats %>%
+  filter(Age_in_years >= 1) %>%
+  filter(Sex == "male", Breed == "Ragdoll", Fixed == T)
+
+# Notice we have to set var.equal = T
+t.test(df1$Sleep_time_hours, df2$Sleep_time_hours,
+       mu = 0, conf.level = 0.9, var.equal = T)
+```
+
+
+
+## Unequal variances T 
+
+What if we don't want to assume equal variances?  Let's compare intact male cats and kittens.
+
+```{r}
+cats <- cats %>%
+  mutate(Age_category = case_when(
+    Age_in_years < 1 ~ "kitten",
+    Age_in_years >= 1 ~ "adult"
+  ))
+
+cats_age_summary <- cats %>% 
+  filter(Sex == "male", Fixed == F) %>% 
+  group_by(Age_category) %>% 
+  summarize(avgTime = mean(Sleep_time_hours),
+            sdTime = sd(Sleep_time_hours),
+            n = n())
+
+cats_age_summary
+```
+
+Even though the standard deviations are similar, we can still decline to make the equal variance assumption.  The unequal variances (Welch) test is more general.
+
+```{r}
+xbar1 <- cats_age_summary$avgTime[1]
+xbar2 <- cats_age_summary$avgTime[2]
+s1 <- cats_age_summary$sdTime[1]
+s2 <- cats_age_summary$sdTime[2]
+n1 <- cats_age_summary$n[1]
+n2 <- cats_age_summary$n[2]
+```
+
+Let's calculate the approximate df for comparing the difference in means.
+
+```{r}
+w_numer <- (s1^2/n1 + s2^2/n2)^2
+w_denom <- (s1^4/(n1^2*(n1-1)) + s2^4/(n2^2*(n2-1)))
+
+w <- w_numer / w_denom
+```
+
+Now, we can build a CI.
+
+```{r}
+pt_est <- xbar1 - xbar2
+se <- sqrt(s1^2/n1 + s2^2/n2)
+
+cv <- qt(0.975, df = w)
+
+c(pt_est - cv*se, pt_est + cv*se)
+```
+
+Now, confirm with `t.test`.
+
+```{r}
+df1 <- cats %>%
+  filter(Sex == "male", Fixed == F, Age_category == "adult")
+
+df2 <- cats %>%
+  filter(Sex == "male", Fixed == F, Age_category == "kitten")
+
+# We don't need to set var.equal since FALSE is the default
+t.test(df1$Sleep_time_hours, df2$Sleep_time_hours,
+       conf.level = 0.95, var.equal = F)
+```
+
+## H-test for a difference in means
+
+Are adult cats more sleepy than kittens on average?  In other words, is $\mu_A - \mu_K$ greater than 0?
+
+```{r}
+# Summary statistics from before
+xbar1 <- cats_age_summary$avgTime[1]
+xbar2 <- cats_age_summary$avgTime[2]
+s1 <- cats_age_summary$sdTime[1]
+s2 <- cats_age_summary$sdTime[2]
+n1 <- cats_age_summary$n[1]
+n2 <- cats_age_summary$n[2]
+
+# Calculate the test statistic and p-value here!
+
+
+```
+
+
+## Paired T test
+
+We want to test whether the difference (growth) in height from age 13 to 14 is positive.
+
+```{r}
+thirteen <- c(44.1, 59.0, 65.9, 58.7, 49.3)
+fourteen <- c(46.3, 60.5, 68.2, 59.4, 50.6)
+
+# This works the way we want it to
+growth <- fourteen - thirteen
+```
+
+```{r}
+n <- length(growth)
+# Note: n is quite small here, we only have 5 individuals; so using the t-distribution instead of the normal is important!
+
+xbar <- mean(growth)
+s <- sd(growth)
+
+test_stat <- (xbar - 0)/(s/sqrt(n))
+
+test_stat
+```
+
+We have an observed test statistic of 5.39, and a null T with 4 df. The p-value is the area above our test statistic.
+
+```{r}
+pt(test_stat, df = n-1, lower.tail = F)
+```
+
+
+### Check in R
+
+```{r}
+t.test(growth, alternative = "greater")
+
+t.test(fourteen, thirteen, paired = T, alternative = "greater")
+```
+
+If we don't pair tthe data, we get a non-significant result.
+
+```{r}
+t.test(fourteen, thirteen, alternative = "greater")
+```
+
+
+
+
+
+
+
