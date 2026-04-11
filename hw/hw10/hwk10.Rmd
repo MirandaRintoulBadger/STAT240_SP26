@@ -1,6 +1,6 @@
 ---
 title: "Homework 10"
-author: "Solutions"
+author: "Student's Name Here"
 output: html_document
 ---
 
