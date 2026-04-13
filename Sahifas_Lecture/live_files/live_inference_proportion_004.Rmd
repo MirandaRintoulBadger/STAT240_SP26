@@ -1,0 +1,102 @@
+---
+title: "live: inference on proportion"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Sec 004
+
+```{r}
+x = 60
+n = 90
+
+phat = x/n
+
+# p_hat +- qnorm(c+(1-c)/2)*sqrt(p_hat*(1-p_hat)/n)
+
+c = 0.95
+cv = qnorm(c+(1-c)/2)
+
+se = sqrt(phat*(1-phat)/n)
+se
+
+phat + c(-1, 1)*cv*se 
+```
+
+$$H_0: p \leq 0.5 \text{ or } p= 0.5 \\
+H_{\alpha}: p > 0.5$$
+
+
+
+$$\text{test-statistic}=z = \frac{phat - p_{H0}}{\sqrt{phat*(1-phat)/n}} \sim N(0, 1)$$
+
+# z-test
+
+```{r}
+z = (p_hat-0.5)/(sqrt(p_hat*(1-p_hat)/n))
+z
+
+# p-val is the prob that getting a test statistic equal or bigger than z.
+
+pnorm(z, lower.tail = F) # this is the p-val and for alpha = 0.05, we reject H0
+```
+
+
+- 95% CI for p1-p2
+
+```{r}
+x1 = 60
+n1 = 90
+x2 = 16
+n2 = 30
+
+
+# Confidence level
+c = 0.95
+
+
+phat1 = x1/n1
+phat2 = x2/n2
+
+pe = phat1 - phat2
+
+se1 = phat1*(1-phat1)/n1 
+se2 = phat2*(1-phat2)/n2 
+se = sqrt(se1 + se2 )
+moe = qnorm(c + (1 - c)/2) * se
+
+pe + c(-1, 1)*moe
+```
+
+# z-test
+
+$$H_0: p_1 = p_2 \text{ equivalently } p_1 - p_2 = 0\\
+H_{\alpha}: p1 > p2 \text{ equivalently } p_1 - p_2 > 0 $$
+
+
+
+
+```{r}
+pe
+
+p_tilde = (x1+x2)/(n1+n2)
+
+se = sqrt(p_tilde*(1-p_tilde)/n1 +(p_tilde*(1-p_tilde)/n2)
+          
+z = pe/se         
+z
+```
+
+```{r}
+p_val = pnorm(z, lower.tail = F) # alpha = 0.05, we fail to reject H_0
+```
+
+
+
+
+

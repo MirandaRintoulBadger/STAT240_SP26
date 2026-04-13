@@ -1,0 +1,103 @@
+---
+title: "live: inference on proportion"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# p = true proportion/probability of making a prosocial choice
+
+x = 60 #number of prosocial choice Chimp A makes in the presence of a partner
+n = 90
+p_hat = x/n
+p_hat # point estimate
+c = 0.95
+cv = qnorm(c + (1-c)/2) # critical value coming from the N(0,1) dist
+se = sqrt(p_hat*(1-p_hat)/n)
+se
+
+p_hat + c(-1, 1)*cv*se
+```
+
+
+- $$H_0: p = 0.5\\
+H_{\alpha}: p > 0.5$$
+
+
+$$\text{test-statistic} = z = \frac{p_{hat}-p_{H_0}}{\sqrt{p_{hat}*(1-p_{hat})/n}}$$
+
+```{r}
+z = (p_hat-0.5)/(sqrt(p_hat*(1-p_hat)/n))
+z
+```
+
+```{r}
+p_val = pnorm(z, lower.tail = F)
+p_val # alpha = 0.05, p-val<alpha, we reject H_0
+1 - p_val # p-val for the left tailed test and it's big because we are performing a wrong sided test 
+```
+
+
+```{r}
+x1 = 16
+n1 = 30
+x2 = 60
+n2 = 90
+
+
+# Confidence level
+c = 0.95
+
+
+phat1 = x1/n1
+phat2 = x2/n2
+
+pe = phat1 - phat2
+
+se1 = phat1*(1-phat1)/n1 
+se2 = phat2*(1-phat2)/n2 
+se = sqrt(se1 + se2 )
+moe = qnorm(c + (1 - c)/2) * se
+
+left = pe - moe
+right = pe + moe
+
+c(left, right) # CI for p1-p2
+ # p1 = proportion of prosocial choice Chimp A makes in the absence of a partner
+# p2 = proportion of prosocial choice Chimp A makes in the presence of a partner
+```
+
+
+$$H_0: p1 = p2 \text{ vs } p1-p2 = 0 \\
+H_{\alpha}: p1 < p2 \text{ vs } p1-p2 < 0$$
+
+
+
+```{r}
+phat1 = x1/n1
+phat2 = x2/n2
+
+pe = phat1 - phat2
+
+p_tilde = (x1+x2)/(n1+n2) # global proportion, we are using this because of H_0
+
+se1_ht = p_tilde*(1-p_tilde)/n1 
+se2_ht = p_tilde*(1-p_tilde)/n2 
+se_ht = sqrt(se1_ht + se2_ht )
+
+
+z = (pe - 0)/se_ht
+z
+
+p_val = pnorm(z)
+p_val # alpha = 0.05, p-val > alpha, we fail to reject H_0
+```
+
+
+
