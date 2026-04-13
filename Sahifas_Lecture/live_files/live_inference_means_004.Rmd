@@ -1,0 +1,79 @@
+---
+title: "live: Inference on means"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# 004
+
+# Infernce on single mean
+
+What is the true average time that it takes a participants of the Boston Marathon in the age range of "18-34" to finish the marathon? 
+
+```{r}
+bm
+
+bm_summary = bm %>% filter(age_range == "18-34", Year == 2010) %>% summarise(sample_mean = mean(total_time), sample_sd = sd(total_time), n = n())
+
+xbar = 223.8312
+s = 40.90398
+n = 6448
+
+# 95% CI fo rthe true avg time for the BM
+
+c = 0.95
+cv = qt(c+(1-c)/2, n-1) # since our sample size is big, the quantile of t distributioj is going to be same as the normal distribution
+
+cv
+
+se = s/sqrt(n)
+
+xbar + c(-1, 1)*cv*se
+```
+
+
+Hypothesis test: Is the true average time it takes a participants of the Boston Marathon in the age range of "18-34" to finish the marathon 4 hrs?
+
+
+$$H_0: \mu = 240 \\
+H_{alpha}: \mu \neq 240$$
+
+
+```{r}
+t = (xbar - 240)/se
+t
+
+2*pt(abs(t), n-1, lower.tail = F)
+```
+
+
+```{r}
+times = bm %>% filter(age_range == "18-34", Year == 2010) %>% select(total_time)
+
+t.test(times)
+
+t.test(times, mu = 240, alternative = "less", conf.level = 0.9)
+
+t.test(times, mu = 224, alternative = "less")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

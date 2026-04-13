@@ -1,0 +1,62 @@
+---
+title: "live: Inference on means"
+author: "Sahifa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+What is the true average time that it takes a participants of the Boston Marathon in the age range of "18-34" to finish the marathon?
+
+
+```{r}
+bm
+
+bm_summary = bm %>% 
+  filter(age_range == "18-34", Year == 2010) %>% 
+  summarize(averageTime = mean(total_time), sdTime = sd(total_time), n = n())
+
+xbar = 223.8312
+s = 40.90398
+n = 6448
+
+# 95% CI for the true average time taken to complete BM.
+
+c = 0.95
+cv = qt(c+(1-c)/2, n-1) # for this example qnorm(c+(1-c)/2) is almost the same as the cv we have here because our sample size is huge
+cv
+
+se = s/sqrt(n)
+se
+
+xbar + c(-1, 1)*cv*se
+```
+
+Is the true average time taken to finish the Boston Marathon equal to 4 hrs (240 mins)?
+
+$$H_0: \mu = 240 \\
+H_{\alpha}: \mu \neq 240$$
+
+```{r}
+mu_h0 = 240
+
+t = (xbar-mu_h0)/(s/sqrt(n))
+t
+p_val = 2*pt(abs(t), n-1, lower.tail = F)
+p_val # alpha = 0.05, we reject H_0
+```
+
+```{r}
+times = bm %>% filter(age_range == "18-34" & Year == 2010) %>% pull(total_time)
+
+t.test(times) # H_0: mu = 0
+
+t.test(times, mu = 240, alternative = "less", conf.level = 0.9) # mu is for changing the val for hypothesis test, alternative is for changing the alternative hypo (by default it is two sided), conf.level = to change the confidence level of confidence interval
+```
+
+
+
