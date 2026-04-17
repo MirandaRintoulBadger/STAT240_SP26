@@ -57,6 +57,97 @@ t.test(times) # H_0: mu = 0
 
 t.test(times, mu = 240, alternative = "less", conf.level = 0.9) # mu is for changing the val for hypothesis test, alternative is for changing the alternative hypo (by default it is two sided), conf.level = to change the confidence level of confidence interval
 ```
+# Inference on differnce of means
+
+# Unequal variances
+
+$X$ = time taken by male participants in the age range of "18-34" of BM $\sim D_x(\mu_x, \sigma_x)$
+$Y$ = time taken by female participants in the age range of "18-34" of BM $\sim D_y(\mu_y, \sigma_y)$
+
+$\mu_x-\mu_y$ most likely negative
+
+```{r}
+bm_twomeans_summary = bm %>% 
+  filter(age_range == "18-34") %>% 
+  group_by(sex) %>% 
+  summarize(avgTime = mean(total_time), sdTime = sd(total_time), n = n())
+
+bm_twomeans_summary
+```
+
+```{r}
+ybar = bm_twomeans_summary$avgTime[1]
+xbar = bm_twomeans_summary$avgTime[2]
+sy = bm_twomeans_summary$sdTime[1]
+sx = bm_twomeans_summary$sdTime[2]
+ny = bm_twomeans_summary$n[1]
+nx = bm_twomeans_summary$n[2]
+```
+
+```{r}
+# 95% CI for the difference of means: pe +_ cv*se
+
+p.e = xbar - ybar
+se = sqrt(sx^2/nx + sy^2/ny)
+w = (sx^2/nx + sy^2/ny)^2 / (sx^4/(nx^2*(nx-1)) + sy^4/(ny^2*(ny-1)))
+cv = qt(0.95+(1-0.95)/2, w)
+cv
+
+p.e + c(-1, 1)*cv*se
+```
+
+- Hypothesis test
+
+$$H_0: \mu_x-\mu_y = 0 \\
+H_{\alpha}: \mu_x - \mu_y < 0$$
+
+
+```{r}
+t = (p.e - 0)/se
+t
+
+p_val = pt(t, w)
+p_val # alpha = 0.05, p-val < alpha, we reject H_0
+```
+
+
+```{r}
+times_x = bm %>% 
+  filter(age_range == "18-34", sex == "male") %>% select(total_time)
+
+times_y = bm %>% 
+  filter(age_range == "18-34", sex == "female") %>% select(total_time)
+
+
+t.test(times_x, times_y, alternative = "less")
+```
+# equal variance
+
+```{r}
+times_x = bm %>% 
+  filter(age_range == "18-34", sex == "female", Year == "2010") %>% select(total_time)
+
+times_y = bm %>% 
+  filter(age_range == "18-34", sex == "female", Year == "2011") %>% select(total_time)
+
+t.test(times_x, times_y, var.equal = T)
+t.test(times_x, times_y, var.equal = T, alternative = "greater")
+```
+
+```{r}
+thirteen = c(44.1, 59.0, 65.9, 58.7, 49.3)
+fourteen = c(46.3, 60.5, 68.2, 59.4, 50.6)
+
+diff = thirteen - fourteen
+
+t.test(diff)
+t.test(thirteen, fourteen, paired = T, conf.level = 0.9)
+```
+
+
+
+
+
 
 
 
