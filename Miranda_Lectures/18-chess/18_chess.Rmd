@@ -1,0 +1,248 @@
+---
+title: "Section 18: Chess Case Study"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      error = TRUE, fig.height = 4)
+library(tidyverse)
+
+theme_set(theme_minimal())
+```
+
+# Overview
+
+## Learning Outcomes
+
+* The purpose of this case study is to **review** the principles we have learned and to **practice** interactively on a real case study.  There may be a few new functions.
+
+* Another purpose of this case study is to **celebrate** how much you all have learned this semester! 
+    
+## Preliminaries
+
+Files to download to `STAT240/lecture/18-ches`:
+    - `18_chess.Rmd`
+    - `18_chess_HINTS.Rmd`
+    - `18_chess_solutions.Rmd` (later, when posted)
+    
+Files to download to `STAT240/data`
+    - `chess_tidy.csv`
+
+    
+# Background
+
+The dataset `chess_tidy.csv` is a pre-tidied dataset of several ranked chess games from [lichess](https://lichess.org/), a popular free online chess server.
+
+We'll use this data to explore some of the factors related to who wins at chess and how long the games take.
+
+```{r}
+games <- read_csv("../../data/chess_tidy.csv")
+
+head(games)
+str(games)
+```
+
+
+* Each row represents a single game of chess.
+
+* There are 14 columns, including ID, starting minutes/increment time, white and black's ratings (with the Glicko-2 system), number of turns, victory type, and opening.
+
+* All of the games are "Rapid", meaning players each have a timer from 10-45 minutes.  Games with 1 turn (an instant resignation) have already been filtered out. 
+
+---
+
+## Special Note: Multiple Comparisons
+
+We're going to be using the same dataset to perform multiple statistical comparisons. Why might this be "risky"?
+
+In order to play it safe, we'll use a small $\alpha$ of 0.01 for all of our tests.  This way, we can avoid making false positive errors.
+
+https://xkcd.com/882/
+
+---
+
+# 1. Proportion Inference
+
+## 1.1 Which player wins more often?
+
+Does white, the first player, have an inherent advantage?
+
+* The code below filters out drawn games and counts the number of games won by black and white.
+
+```{r}
+games %>%
+  filter(winner != "draw") %>%
+  count(winner)
+```
+
+* Perform a hypothesis test at the 1% significance level to determine if white wins more than half of the time.  Report a p-value and interpret your results in context.
+
+```{r}
+# Write your code here!
+
+```
+
+
+## 1.2 How does victory type affect the winner?
+
+* The two most common victory types are "mate" and "resign" (followed by out of time and draw).
+
+Is the win rate between the colors different for different types of victories?
+
+* The R code below counts which player won for games ending in mate and resign.
+
+```{r}
+games %>%
+  filter(victory_status %in% c("mate", "resign")) %>%
+  count(victory_status, winner)
+```
+
+* Build a 99% confidence interval for the difference in white's win rate for games ending in mate and games ending in a resignation.
+
+* Also consider the *assumptions* for this method.  How can we check these assumptions based on the table above?
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 2. Means Inference
+
+How many turns are in a typical chess game, and is this related to the amount of time the players start with?  The data we have covers a wide range of total turns and starting time.  Let's first explore the data.
+
+
+## 2.1 Average number of turns
+
+* Build a histogram of the number of turns and comment on the shape.
+
+* Calculate summary statistics (mean, sd, and n).
+
+```{r}
+# Write your code here!
+
+```
+
+What does the histogram show about the number of turns across sample of games, and why is it still acceptable to use a T test?
+
+* Build a 99% T confidence interval for the average number of turns in a game of chess.  Interpret your interval in context and optionally check your work with `t.test()`.
+
+```{r}
+# Write your code here!
+
+```
+
+
+## 2.2 Average number of turns based on starting time
+
+* All of the games in the data are timed, but some start with a very generous amount of initial minutes.
+
+```{r}
+games %>%
+  ggplot(aes(x = starting_minutes)) +
+  geom_histogram()
+```
+
+* When players have less time, do they make more aggressive moves to try to end the game in a smaller number of turns?
+
+* The International Chess Federation has Rapid games start with 15 minutes per player.  Let's compare games with 15 minutes or less starting time to those with more than 15 minutes of starting time.
+
+Let $\mu_1$ be the average number of turns taken for games with 15 minutes or less of starting time and $\mu_2$ be the average number of turns taken for games with over 15 minutes of starting time.  We want to test
+
+$$H_0: \mu_1 - \mu_2 = 0 \quad \text{versus} \quad H_A: \mu_1 - \mu_2 < 0$$
+
+* Start by mutating a variable to split the games into two groups based on starting time.
+
+* Identify the best two-sample test to use in this context.
+
+* Perform the appropriate test at the 1% level.  Make sure to state your test statistic, p-value, and conclusions.
+
+```{r}
+# Write your code here!
+
+```
+
+
+## 2.3 Player ratings
+
+* Is there a significant difference between the player ratings of white and black?  In other words, does one color tend to be assigned to the better player?
+
+* Identify the appropriate test to check whether the difference in average rating for white and black is zero or nonzero. Perform the appropriate test at the 1% level.  Make sure to state your test statistic, p-value, and conclusions.
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 3. Linear Regression
+
+Do games end faster when there is a larger skill difference between the players?
+
+* The code below creates a new column indicating the average difference in rating between white and black for each game.  Let's build a scatterplot of this data versus number of turns.
+
+```{r}
+games <- games %>%
+  mutate(abs_rating_diff = abs(white_rating - black_rating))
+
+games %>%
+  ggplot(aes(x = abs_rating_diff, y = turns)) +
+  geom_point()
+```
+
+* Use `lm()` to build a linear regression model relating difference in rating and game length in turns. Interpret the slope and intercept in context.
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 3.1 Slope confidence interval
+
+* Let's investigate the slope coefficient further. Build a 99% confidence interval for the slope of the linear regression model, and interpret in context.
+
+```{r}
+# Write your code here!
+
+```
+
+
+# 3.2 Validate the linear model
+
+This linear model may not be well fit - the conclusion from the previous test relies on several key assumptions:
+
+- Linearity
+- Normality
+- Constant variance
+
+Perform a residual analysis on the linear model by making a plot of residuals versus x.  What patterns do you see?
+
+```{r}
+# Write your code here!
+
+```
+
+
+How could this model be improved?
+
+
+# 4. Bonus Challenges
+
+Here are some trickier prompts to consider to really test your conceptual understanding!
+
+* Suppose we are doing 5 statistical tests that each have significance level 0.05.  What is the probability that we never make a type I error?
+
+* Suppose we are doing 5 statistical tests that each have significance level 0.05.  What is the probability that we make a type I error *at least once*?
+
+* Statistical analysis require the observations (rows) to be independent of each other.  What are some reasons this might not be the case in this dataset, and how might that be fixed?
+
+* What are some possible confounding variables that might affect our conclusions in the basic proportion tests and T-tests above?  What additional variables would be useful to record in our data?
+
+
+
+
+
+
+    

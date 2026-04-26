@@ -1,0 +1,56 @@
+---
+title: "Chess Case Study Hints"
+author: "Miranda Rintoul"
+date: "2025-12-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Proportion Inference
+
+## 1.1 Which player wins more often?
+
+* Note that the table gives the number of successes + the number of failures, not the number of successes + total.
+* Pay attention to the direction of your p-value calculation.
+
+## 1.2 How does victory type affect the winner?
+
+* The use of a normal curve for a proportion CI or hypothesis test is based on the Central Limit Theorem.
+* Since we aren't doing a hypothesis test, we won't need to calculate a common proportion for the standard error.
+* If we have a 99% interval, what is alpha?  What percentile should we use for a critical value?
+
+# 2. Means Inference
+
+## 2.1 Average number of turns
+
+* The Central Limit Theorem allows us to assume normality when studying X-bar as long as our sample size is large.  Why are we using a T and not a normal distribution for our critical value?
+* The degrees of freedom in one-sample mean inference in always $n-1$.
+
+## 2.2 Average number of turns based on starting time
+
+* Think about whether there is a meaningful way to pair together the observations across groups.  Can we calculate a "difference" before taking the mean?
+* For two-independent sample testing, we can either perform an equal variances T-test or a Welch T-test.  To evaluate the equal variances assumpmtion, consider the ratio of the two standard deviations.
+
+## 2.3 Player ratings
+
+* Now do we have a paired structure?
+* This hypothesis test is two-sided, unlike the last few exercises.  Pay attention to the sign of the test statistic when calculating the p-value.
+
+
+# 3. Linear Regression
+
+# 3.1 Slope confidence interval
+
+* You can either calculate standard error "manually", or just read off the value from the `summary()` coefficient table.
+* The T degrees of freedom for linear regression are different from the df when doing a T test for the mean.
+
+# 3.2 Validate the linear model
+
+* To build your graph, you'll need to add the residuals as a column into the data.
+* Pay attention to the specific patterns in the residual plot.
+
+
+
