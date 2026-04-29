@@ -526,7 +526,7 @@ And assuming $\sigma_x=\sigma_y= \sigma$, thus the estimate of that will be $s$,
 
 $$\frac{(\bar{x} - \bar{y})-(\mu_x-\mu_y)}{s\sqrt{\frac{1}{n_x}+\frac{1}{n_y}}}\sim t(W).$$
 
-where, $s$ is the weighted average of the sample deviations of $X$ and $Y$ and is given by $s = \sqrt{\frac{(n_x-1)s_x^2 - (n_y-1)s_y^2}{n_x+n_y-2}}.$
+where, $s_p$ is the weighted average of the sample deviations of $X$ and $Y$ and is given by $s_p = \sqrt{\frac{(n_x-1)s_x^2 + (n_y-1)s_y^2}{n_x+n_y-2}}.$
 
 And just like for unequal variances, we end up with the $t$-distribution the degrees of freedom is $n_x+n_y-2$.
 
@@ -539,7 +539,7 @@ $$
 (\bar{x}-\bar{y}) \pm \text{qt}\left(c+\frac{1-c}{2}, n_x+n_y-2 \right)*s\sqrt{\frac{1}{n_x}+\frac{1}{n_y}}
 $$
 
-and $s = \sqrt{\frac{(n_x-1)s_x^2 - (n_y-1)s_y^2}{n_x+n_y-2}}.$
+and $s_p = \sqrt{\frac{(n_x-1)s_x^2 + (n_y-1)s_y^2}{n_x+n_y-2}}.$
 
 ## Hypothesis Testing For A Difference of Means with equal variances
 
