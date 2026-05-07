@@ -1,0 +1,173 @@
+---
+title: "Discussion 12"
+author: "Solutions"
+output: html_document
+---
+
+```{css, echo = F}
+.rsoln {
+background-color: #E6E6FA;
+}
+
+.soln {
+color: #5858d0;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE,
+                      error = TRUE)
+
+library(tidyverse)
+```
+
+# Preliminaries
+
+- This file should be in `STAT240/discussion/ds12`.
+- The file `example_lm_data.csv` should be in `STAT240/data`.
+- This assignment should be completed in your discussion groups, which can be found on the "People" tab on Canvas.
+
+The goal of today's discussion will be to build a stronger understanding of the meaning of correlation in a linear model and how to use the model for different types of predictions.
+
+
+# Problem 1
+#### (approx. 15 minutes)
+
+The dataset `example_lm_data.csv` contains four sets of (x, y) pairs.  
+```{r}
+lm_data <- read_csv("../../data/example_lm_data.csv")
+```
+
+(a) Use R to fit a linear model on each dataset (four linear models total).  Also calculate the correlation between each set of (x, y) pairs.  What do you notice about the four sets of data?
+
+```{r, class.source="rsoln", class.output="rsoln"}
+lm_1 <- lm(y1 ~ x1, data = lm_data)
+lm_2 <- lm(y2 ~ x2, data = lm_data)
+lm_3 <- lm(y3 ~ x3, data = lm_data)
+lm_4 <- lm(y4 ~ x4, data = lm_data)
+
+lm_1; lm_2; lm_3; lm_4
+
+cor(lm_data$x1, lm_data$y1); cor(lm_data$x2, lm_data$y2)
+cor(lm_data$x3, lm_data$y3); cor(lm_data$x4, lm_data$y4)
+```
+
+[All of the linear models have very similar coefficients, and the correlations between x and y in each respective dataset are also extremely close to each other.  On the surface, it seems like the four datasets are extremely close to each other and demonstrate the same relationship.]{.soln}
+
+(b) Now, use `ggplot()` with `geom_point()` and `geom_smooth()` to make scatterplots of each dataset with its respective linear model.  What can be said about the data now that we can see it?  Which set of data is most appropriately described by the linear model?
+
+```{r, class.source="rsoln", class.output="rsoln"}
+ggplot(data = lm_data, aes(x = x1, y = y1)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 1")
+
+ggplot(data = lm_data, aes(x = x2, y = y2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 2")
+
+ggplot(data = lm_data, aes(x = x3, y = y3)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 3")
+
+ggplot(data = lm_data, aes(x = x4, y = y4)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Model, Dataset 4")
+```
+
+[Although the linear models are all very similar, the four datasets look completely different in terms of shape!  This shows how a lot of the the specific information about our data is lost when we describe it using only a linear model.  It also demonstrates the importance of graphing the data - a linear model is not appropriate for any of the four sets of data.]{.soln}
+
+[This activity is based on the Datasaurus Dozen, a set of 13 datasets with nearly identical descriptive statistics but wildly different scatterplots.  The Datasaurus Dozen was inspired by the classic Anscombe's Quartet which demonstrates a similar idea about linear modeling.]{.soln}
+
+After completing the activity, you can read more about this example [here](https://medium.com/@marc.bolle/datasaurus-dozen-visualization-using-python-d328dad64d20).
+
+
+# Problem 2
+#### (approx. 20 minutes)
+
+The code below (hidden in the .html) creates a ficitonal dataset of 35 students and their midterm and final exam scores (out of 100) and creates a basic scatterplot of the data.
+
+```{r, include=FALSE}
+exam_scores <- tibble(
+  midterm = c(85.4, 91.0, 83.9, 83.9, 84.0, 85.8, 76.2, 83.9, 73.5,
+              80.0, 83.9, 85.0, 65.0, 79.4, 91.5, 90.4, 79.4, 80.7,
+              76.0, 72.3, 87.3, 82.1, 88.2, 69.2, 72.9, 68.9, 86.2,
+              90.8, 83.7, 72.4, 79.7, 82.7, 80.6, 94.5, 97.5),
+  final = c(82.9, 95.8, 79.6, 89.2, 81.2, 86.9, 69.1, 86.1, 76.2,
+            83.2, 81.4, 83.3, 65.3, 69.4, 83.8, 89.2, 83.6, 80.8,
+            77.3, 71.9, 85.7, 89.4, 85.3, 74.0, 73.8, 73.9, 88.5,
+            93.5, 85.6, 76.8, 69.8, 73.7, 80.4, 98.4, 88.2)
+)
+
+ggplot(exam_scores, aes(x = midterm, y = final)) + 
+  geom_point()
+```
+
+
+(a) Using R, calculate the mean and standard deviation of both the midterm and final exam scores, and calculate the correlation between the two scores.
+
+```{r, class.source="rsoln", class.output="rsoln"}
+mean(exam_scores$midterm); sd(exam_scores$midterm)
+mean(exam_scores$final); sd(exam_scores$final)
+
+cor(exam_scores$midterm, exam_scores$final)
+```
+
+(b) Is it true that students had above-average midterm scores also had above-average final exam scores?  Is it true that students who had above-average midterm scores showed an improved score on the final?
+
+[Let's make a new column to indicate whether the student improved their score from the midterm to the final, and then filter to only show students with an above-average midterm score.]{.soln}
+
+```{r, class.source="rsoln", class.output="rsoln"}
+exam_scores_small <- exam_scores %>%
+  mutate(improved = final > midterm) %>%
+  filter(midterm > 81.94)
+```
+
+[Now, let's make a summary table to look at the average final exam scores for these students and see what proportion of them improved their score on the final.]{.soln}
+
+```{r, class.source="rsoln", class.output="rsoln"}
+exam_scores_small %>%
+  summarize(avg_final = mean(final),
+            did_better = mean(improved))
+```
+
+[The average final exam score for this group of students is 86.385, which is better than the overall average final exam score of 81.52.  Students who did better on the midterm also tended to do better on the final, which makes sense given the strong positive correlation between the two measurements.]{.soln}
+
+[We also see that less than half of these students managed to improve their score on the final, even though the overall average midterm and final scores are very similar (so we can assume the tests were equally difficult).]{.soln}
+
+(c) Using the basic "by-hand" formulas (i.e. not using R `lm()`), calculate a linear model to predict final exam score (y) in terms of midterm score (x).
+
+[The slope of our model is given by 
+$$\hat{\beta}_1 = r\frac{s_y}{s_x} = 0.811\frac{7.91}{7.51} = 0.854$$
+and the intercept is given by 
+$$\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x} = 81.52 - 0.854(81.94) = 11.54$$
+The predicted final exam score is 
+$$\hat{y} = 11.54 + 0.854x$$]{.soln}
+
+(d) Suppose a student scored *one standard deviation above the class average* for their midterm score.  What does the model predict their final exam score to be?  What is this student's final exam score in terms of the average and standard deviation final exam score for the class?
+
+[The average midterm score was 81.94 with sd 7.51, so this student must have scored $81.94 + 7.51 = 89.45$.  The model predicts their final exam score to be
+$$11.54 + 0.854(89.45) = 87.93$$]{.soln}
+
+[The average final score is 81.52, so this student scored $87.93 - 81.52 = 6.41$ points above average.  This is $\frac{6.41}{7.91} = 0.81$ standard deviations above the average final exam score.]{.soln}
+
+(e) For linear models in general, if a value $x_i$ is $z_i$ standard deviations above the average of X, the predicted value $\hat{y}_i$ will be how many standard deviations above the average of Y?
+
+[The predicted value $\hat{y}_i$ will be $r(z_i)$ y-standard deviations above $\bar{y}$.  We can understand the correlation as the linear relationship between $x$ and $y$ in standard units. Since it is less than 1, a student's final exam score is determined partially but not entirely from their midterm score.]{.soln}
+
+(f) In a famous anecdote, flight instructors claim that punishment and shame is the most effective teaching tool.  Student pilots that were praised for good performance tended to do worse on their next flight, and student pilots that were berated for poor performance tended to do better on their next flight.  How can we explain this phenomenon with regression?
+
+[If we imagine calculating correlation or fitting a linear model between "first flight performance" and "second flight performance" then we would expect to see a strong but not perfect correlation.  The pilots who did extremely well on their first flight will probably do worse on their second flight, just due to random chance.  Similarly, the pilots who did poorly on their first flight will most likely improve.  This is the same reason for the "sophomore slump" in sports.]{.soln}
+
+
+---
+
+# Final Exam: Thursday, May 7
+
+Use the remaining time in discussion to work on writing your cheat sheet for the final exam.  You can bring *two* standard sheet of paper with anything you want written on both sides, and you are welcome to work with others to decide what you want to put on your sheet.
+
+The final exam will be cumulative, so topics from any point in the semester are eligible to appear on the exam.  However, there will be a focus on chapters covered after the second midterm (Miranda's sections 11-16).
+
